@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.fyp-grading</groupId>
-	<artifactId>admin-service</artifactId>
+	<artifactId>review-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>review-service</name>
 	<description>FYP Grading project - review microservice</description>
