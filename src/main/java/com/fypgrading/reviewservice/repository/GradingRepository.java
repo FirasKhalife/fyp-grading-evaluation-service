@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface GradingRepository extends MongoRepository<Grading, Integer> {
 
-    List<Grading> findByTeamIdAndReviewerIdIn(Integer teamId, List<Integer> reviewerIds);
+    Long countByTeamId(Integer teamId);
 }

@@ -2,6 +2,7 @@ package com.fypgrading.reviewservice.service;
 
 import com.fypgrading.reviewservice.entity.Grading;
 import com.fypgrading.reviewservice.repository.GradingRepository;
+import com.fypgrading.reviewservice.service.dto.CountDTO;
 import com.fypgrading.reviewservice.service.dto.GradingDTO;
 import com.fypgrading.reviewservice.service.dto.ReviewerDTO;
 import com.fypgrading.reviewservice.service.event.GradingSubmittedEvent;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GradingService {
@@ -71,21 +73,18 @@ public class GradingService {
     }
 
     public void searchForReviewers(GradingSubmittedEvent event) {
-        ResponseEntity<List<ReviewerDTO>> reviewersResponse = restTemplate.exchange(
+        ResponseEntity<CountDTO> reviewersResponse = restTemplate.exchange(
                 "http://localhost:8080/api/teams/" + event.getTeamId() + "/reviewers",
                 HttpMethod.GET, null, new ParameterizedTypeReference<>() {}
         );
 
-        List<ReviewerDTO> reviewerList = reviewersResponse.getBody();
+        CountDTO reviewersCount = reviewersResponse.getBody();
+        if (reviewersCount == null)
+            throw new RuntimeException("Reviewers count for team " + event.getTeamId() + " is null");
 
-        assert reviewerList != null;
-        List<Grading> gradingList =
-                gradingRepository.findByTeamIdAndReviewerIdIn(
-                        event.getTeamId(),
-                        reviewerList.parallelStream().map(ReviewerDTO::getId).toList()
-                );
+        Long gradingCount = gradingRepository.countByTeamId(event.getTeamId());
 
-        if (gradingList.size() == reviewerList.size()) {
+        if (gradingCount.equals(reviewersCount.getCount())) {
             eventDispatcher.sendNotification(event.getTeamId());
         }
     }
