@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GradingSubmittedEvent {
+public class EvaluationSubmittedEvent {
 
     private Integer teamId;
 

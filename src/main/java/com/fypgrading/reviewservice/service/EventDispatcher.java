@@ -1,7 +1,7 @@
 package com.fypgrading.reviewservice.service;
 
 import com.fypgrading.reviewservice.config.RabbitConfig;
-import com.fypgrading.reviewservice.service.event.GradingSubmittedEvent;
+import com.fypgrading.reviewservice.service.event.EvaluationSubmittedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -21,10 +21,10 @@ public class EventDispatcher {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendGradingSubmitted(GradingSubmittedEvent event) {
+    public void sendEvaluationSubmitted(EvaluationSubmittedEvent event) {
         Message message = converter.toMessage(event, new MessageProperties());
 
-        logger.info("Sending GradingSubmittedEvent to " + RabbitConfig.GRADES_QUEUE_NAME + ": " + message);
+        logger.info("Sending EvaluationSubmittedEvent to " + RabbitConfig.GRADES_QUEUE_NAME + ": " + message);
 
         rabbitTemplate.send(
                 "",

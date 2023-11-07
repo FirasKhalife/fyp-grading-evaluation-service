@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GradingDTO {
+public class EvaluationDTO {
 
     private Integer id;
 
@@ -17,5 +17,5 @@ public class GradingDTO {
 
     private Integer teamId;
 
-    private List<RubricGradingDTO> rubricsGrades;
+    private List<RubricEvaluationDTO> rubricsGrades;
 }

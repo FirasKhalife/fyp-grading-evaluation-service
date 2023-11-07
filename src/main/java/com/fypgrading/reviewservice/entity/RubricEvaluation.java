@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RubricGrading {
+public class RubricEvaluation {
 
     private String name;
 

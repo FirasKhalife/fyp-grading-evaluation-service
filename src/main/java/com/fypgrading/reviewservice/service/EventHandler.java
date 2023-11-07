@@ -3,7 +3,7 @@ package com.fypgrading.reviewservice.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fypgrading.reviewservice.config.RabbitConfig;
 import com.fypgrading.reviewservice.exceptions.RabbitException;
-import com.fypgrading.reviewservice.service.event.GradingSubmittedEvent;
+import com.fypgrading.reviewservice.service.event.EvaluationSubmittedEvent;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,25 +22,25 @@ public class EventHandler implements ChannelAwareMessageListener {
 
     private final Logger logger = LoggerFactory.getLogger(EventHandler.class);
     private final RabbitTemplate rabbitTemplate;
-    private final GradingService gradingService;
+    private final EvaluationService evaluationService;
     private final ObjectMapper objectMapper;
 
-    public EventHandler(ObjectMapper objectMapper, RabbitTemplate rabbitTemplate, GradingService gradingService) {
+    public EventHandler(ObjectMapper objectMapper, RabbitTemplate rabbitTemplate, EvaluationService evaluationService) {
         this.rabbitTemplate = rabbitTemplate;
-        this.gradingService = gradingService;
+        this.evaluationService = evaluationService;
         this.objectMapper = objectMapper;
     }
 
     @Override
     public void onMessage(Message message, Channel channel) {
         byte[] body = message.getBody();
-        GradingSubmittedEvent event;
+        EvaluationSubmittedEvent event;
         String messageBody = new String(body);
-        logger.info("Grading Submitted event received: " + messageBody);
+        logger.info("Evaluation Submitted event received: " + messageBody);
 
         try {
-            event = objectMapper.readValue(messageBody, GradingSubmittedEvent.class);
-            gradingService.searchForReviewers(event);
+            event = objectMapper.readValue(messageBody, EvaluationSubmittedEvent.class);
+            evaluationService.searchForReviewers(event);
         }
         catch (Exception ex) {
             RabbitException exception = new RabbitException("Exception raised!", message, channel);

@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Grading {
+public class Evaluation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,5 +26,5 @@ public class Grading {
     private Integer teamId;
 
     @NotNull
-    private List<RubricGrading> rubricsGrades;
+    private List<RubricEvaluation> rubricsGrades;
 }
