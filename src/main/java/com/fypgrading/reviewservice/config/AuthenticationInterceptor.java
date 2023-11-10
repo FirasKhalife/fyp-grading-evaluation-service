@@ -1,13 +1,12 @@
 package com.fypgrading.reviewservice.config;
 
 import com.fypgrading.reviewservice.service.dto.AuthDTO;
-import com.fypgrading.reviewservice.service.dto.ReviewerDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -24,17 +23,25 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         AuthDTO authDTO = new AuthDTO();
         authDTO.setEmail(email);
         authDTO.setPassword(password);
-        ResponseEntity<ReviewerDTO> reviewerResponse = restTemplate.exchange(
-                "http://localhost:8080/api/auth/login",
-                HttpMethod.GET, new HttpEntity<>(authDTO), new ParameterizedTypeReference<>() {
-                }
-        );
-        if (reviewerResponse.getStatusCode().isError()) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized");
-            return false; // Stop further processing of the request
+
+        try {
+            restTemplate.exchange(
+                    "http://localhost:8081/api/auth/login",
+                    HttpMethod.POST, new HttpEntity<>(authDTO), new ParameterizedTypeReference<>() {}, String.class
+            );
+
+        } catch (HttpClientErrorException ex) {
+            if (ex.getStatusCode().value() == 401) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Unauthorized");
+                return false;
+            }
+
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Unexpected error occurred");
+            return false;
         }
 
-        return true; // Proceed with the request
+        return true;
     }
 }

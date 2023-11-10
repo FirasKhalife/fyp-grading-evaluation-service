@@ -52,20 +52,20 @@ public class EvaluationService {
         return gradingMapper.toDTO(createdEvaluation);
     }
 
-    public EvaluationDTO updateEvaluation(Integer id, EvaluationDTO gradingDTO) {
+    public EvaluationDTO updateEvaluation(Long id, EvaluationDTO gradingDTO) {
         Evaluation grading = gradingMapper.toEntity(gradingDTO);
         grading.setId(id);
         grading = gradingRepository.save(grading);
         return gradingMapper.toDTO(grading);
     }
 
-    public EvaluationDTO deleteEvaluation(Integer id) {
+    public EvaluationDTO deleteEvaluation(Long id) {
         Evaluation grading = getEvaluationById(id);
         gradingRepository.delete(grading);
         return gradingMapper.toDTO(grading);
     }
 
-    private Evaluation getEvaluationById(Integer id) {
+    private Evaluation getEvaluationById(Long id) {
         return gradingRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("Evaluation not found"));
     }

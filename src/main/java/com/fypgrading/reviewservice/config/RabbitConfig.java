@@ -39,10 +39,11 @@ public class RabbitConfig {
     }
 
     @Bean
-    public Queue notificationQueue() {
+    public Queue notificationQueue(@Value("${spring.rabbitmq.retry-notification.exchange}") String retryNotificationExchangeName,
+                                   @Value("${spring.rabbitmq.retry-notification.routing-key}") String retryNotificationRoutingKey) {
         return QueueBuilder.durable(NOTIFICATION_QUEUE_NAME)
-                .withArgument("x-dead-letter-exchange", RETRY_NOTIFICATION_EXCHANGE_NAME)
-                .withArgument("x-dead-letter-routing-key", RETRY_NOTIFICATION_ROUTING_KEY)
+                .withArgument("x-dead-letter-exchange", retryNotificationExchangeName)
+                .withArgument("x-dead-letter-routing-key", retryNotificationRoutingKey)
                 .build();
     }
 
@@ -55,61 +56,6 @@ public class RabbitConfig {
     public Binding bindingNotification(@Qualifier("notificationQueue") Queue queue,
                                        @Qualifier("notificationExchange") TopicExchange exchange) {
         return BindingBuilder.bind(queue).to(exchange).with(NOTIFICATION_ROUTING_KEY);
-    }
-
-    /**
-     * Retry Notification Queue
-     * In case of processing failure in the Notification Queue, the message will be sent to the Retry Notification Queue where it will stay for a certain amount of time (RETRY_NOTIFICATION_TTL) before being sent back to the Notification Queue
-     */
-    public static String RETRY_NOTIFICATION_QUEUE_NAME;
-    public static String RETRY_NOTIFICATION_EXCHANGE_NAME;
-    public static String RETRY_NOTIFICATION_ROUTING_KEY;
-    public static Integer RETRY_NOTIFICATION_TTL;
-    public static Integer RETRY_NOTIFICATION_MAX_COUNT;
-
-    @Value("${spring.rabbitmq.retry-notification.queue}")
-    public void setRetryNotificationQueueName(String retryNotificationQueueName) {
-        RETRY_NOTIFICATION_QUEUE_NAME = retryNotificationQueueName;
-    }
-
-    @Value("${spring.rabbitmq.retry-notification.exchange}")
-    public void setRetryNotificationExchangeName(String retryNotificationExchangeName) {
-        RETRY_NOTIFICATION_EXCHANGE_NAME = retryNotificationExchangeName;
-    }
-
-    @Value("${spring.rabbitmq.retry-notification.routing-key}")
-    public void setRetryNotificationRoutingKey(String retryNotificationRoutingKey) {
-        RETRY_NOTIFICATION_ROUTING_KEY = retryNotificationRoutingKey;
-    }
-
-    @Value("${spring.rabbitmq.retry-notification.ttl}")
-    public void setRetryNotificationTTL(Integer retryNotificationTTL) {
-        RETRY_NOTIFICATION_TTL = retryNotificationTTL;
-    }
-
-    @Value("${spring.rabbitmq.retry-notification.max-count}")
-    public void setRetryNotificationMaxCount(Integer retryNotificationMaxCount) {
-        RETRY_NOTIFICATION_MAX_COUNT = retryNotificationMaxCount;
-    }
-
-    @Bean
-    Queue retryNotificationQueue() {
-        return QueueBuilder.durable(RETRY_NOTIFICATION_QUEUE_NAME)
-                .withArgument("x-message-ttl", RETRY_NOTIFICATION_TTL)
-                .withArgument("x-dead-letter-exchange", NOTIFICATION_EXCHANGE_NAME)
-                .withArgument("x-dead-letter-routing-key", NOTIFICATION_ROUTING_KEY)
-                .build();
-    }
-
-    @Bean
-    public TopicExchange retryNotificationExchange() {
-        return new TopicExchange(RETRY_NOTIFICATION_EXCHANGE_NAME);
-    }
-
-    @Bean
-    public Binding bindingRetryNotification(@Qualifier("retryNotificationQueue") Queue queue,
-                                            @Qualifier("retryNotificationExchange") TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(RETRY_NOTIFICATION_ROUTING_KEY);
     }
 
     /**

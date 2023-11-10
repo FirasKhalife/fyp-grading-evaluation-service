@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RubricEvaluationDTO {
+public class GradedRubricDTO {
 
     private String name;
 

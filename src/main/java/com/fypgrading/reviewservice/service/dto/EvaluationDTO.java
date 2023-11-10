@@ -11,11 +11,9 @@ import java.util.List;
 @AllArgsConstructor
 public class EvaluationDTO {
 
-    private Integer id;
-
     private Integer reviewerId;
 
     private Integer teamId;
 
-    private List<RubricEvaluationDTO> rubricsGrades;
+    private List<GradedRubricDTO> gradedRubrics;
 }

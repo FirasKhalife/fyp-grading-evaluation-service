@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/evaluation")
+@RequestMapping("/api/evaluations")
 public class EvaluationController {
 
     private final EvaluationService evaluationService;
@@ -36,13 +36,13 @@ public class EvaluationController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EvaluationDTO> updateEvaluation(@PathVariable Integer id, @RequestBody EvaluationDTO gradingDTO) {
+    public ResponseEntity<EvaluationDTO> updateEvaluation(@PathVariable Long id, @RequestBody EvaluationDTO gradingDTO) {
         EvaluationDTO updateEvaluation = evaluationService.updateEvaluation(id, gradingDTO);
         return ResponseEntity.ok().body(updateEvaluation);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<EvaluationDTO> deleteEvaluation(@PathVariable Integer id) {
+    public ResponseEntity<EvaluationDTO> deleteEvaluation(@PathVariable Long id) {
         EvaluationDTO deletedEvaluation = evaluationService.deleteEvaluation(id);
         return ResponseEntity.ok().body(deletedEvaluation);
     }

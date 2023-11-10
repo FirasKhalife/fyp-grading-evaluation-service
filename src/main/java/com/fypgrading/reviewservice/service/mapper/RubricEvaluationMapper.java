@@ -1,19 +1,19 @@
 package com.fypgrading.reviewservice.service.mapper;
 
-import com.fypgrading.reviewservice.entity.RubricEvaluation;
-import com.fypgrading.reviewservice.service.dto.RubricEvaluationDTO;
+import com.fypgrading.reviewservice.entity.GradedRubric;
+import com.fypgrading.reviewservice.service.dto.GradedRubricDTO;
 import org.mapstruct.Mapper;
 
 import java.util.List;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface RubricEvaluationMapper {
 
-    RubricEvaluationDTO toDTO(RubricEvaluation rubricEvaluation);
+    GradedRubricDTO toDTO(GradedRubric rubricEvaluation);
 
-    RubricEvaluation toEntity(RubricEvaluationDTO rubricEvaluationDTO);
+    GradedRubric toEntity(GradedRubricDTO gradedRubricDTO);
 
-    List<RubricEvaluationDTO> toDTOList(List<RubricEvaluation> rubricEvaluations);
+    List<GradedRubricDTO> toDTOList(List<GradedRubric> rubricEvaluations);
 
-    List<RubricEvaluation> toEntityList(List<RubricEvaluationDTO> rubricEvaluationDTOs);
+    List<GradedRubric> toEntityList(List<GradedRubricDTO> gradedRubricDTOS);
 }
