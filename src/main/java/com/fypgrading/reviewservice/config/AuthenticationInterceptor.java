@@ -15,32 +15,29 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-            throws Exception {
-        String email = request.getHeader("email");
-        String password = request.getHeader("password");
-
-        AuthDTO authDTO = new AuthDTO();
-        authDTO.setEmail(email);
-        authDTO.setPassword(password);
-
-        try {
-            restTemplate.exchange(
-                    "http://localhost:8081/api/auth/login",
-                    HttpMethod.POST, new HttpEntity<>(authDTO), new ParameterizedTypeReference<>() {}, String.class
-            );
-
-        } catch (HttpClientErrorException ex) {
-            if (ex.getStatusCode().value() == 401) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Unauthorized");
-                return false;
-            }
-
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Unexpected error occurred");
-            return false;
-        }
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+//        String email = request.getHeader("email");
+//        String password = request.getHeader("password");
+//
+//        AuthDTO authDTO = new AuthDTO();
+//        authDTO.setEmail(email);
+//        authDTO.setPassword(password);
+//
+//        try {
+//            restTemplate.exchange(
+//                    "http://localhost:8081/api/auth/login",
+//                    HttpMethod.POST, new HttpEntity<>(authDTO), new ParameterizedTypeReference<>() {}, String.class
+//            );
+//
+//        } catch (HttpClientErrorException ex) {
+//            if (ex.getStatusCode().value() == 401) {
+//                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//                return false;
+//            }
+//
+//            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//            return false;
+//        }
 
         return true;
     }
