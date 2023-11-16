@@ -1,7 +1,6 @@
 package com.fypgrading.reviewservice.service.dto;
 
 import com.fypgrading.reviewservice.enums.AssessmentEnum;
-import com.fypgrading.reviewservice.service.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,15 +8,16 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReviewerDTO {
+public class AssessmentGradeDTO {
 
     private Integer id;
 
-    private String firstName;
+    private AssessmentEnum assessment;
 
-    private String lastName;
+    private Float grade;
 
-    private String email;
+    private Integer reviewerId;
 
-    private Role role;
+    private Integer teamId;
 }
+

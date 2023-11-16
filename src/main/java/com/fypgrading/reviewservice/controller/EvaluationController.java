@@ -18,9 +18,27 @@ public class EvaluationController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<EvaluationDTO>> getEvaluations() {
-        List<EvaluationDTO> gradings = evaluationService.getEvaluations();
-        return ResponseEntity.ok().body(gradings);
+    public ResponseEntity<List<EvaluationDTO>> getSubmittedEvaluations() {
+        List<EvaluationDTO> evaluations = evaluationService.getSubmittedEvaluations();
+        return ResponseEntity.ok().body(evaluations);
+    }
+
+    @GetMapping("/{assessment}/{reviewerId}/{teamId}")
+    public ResponseEntity<EvaluationDTO> getEvaluationByReviewerIdAndTeamIdAndAssessment(
+            @PathVariable String assessment, @PathVariable Integer reviewerId, @PathVariable Integer teamId
+    ) {
+        EvaluationDTO evaluation =
+                evaluationService.getEvaluationByReviewerIdAndTeamIdAndAssessment(
+                        reviewerId, teamId, assessment
+                );
+        return ResponseEntity.ok().body(evaluation);
+    }
+
+    @GetMapping("/{assessment}/{teamId}")
+    public ResponseEntity<List<EvaluationDTO>> getTeamEvaluationsByAssessment(@PathVariable String assessment,
+                                                                              @PathVariable Integer teamId) {
+        List<EvaluationDTO> evaluations = evaluationService.getTeamEvaluationByAssessment(assessment, teamId);
+        return ResponseEntity.ok().body(evaluations);
     }
 
     @PostMapping("/draft")

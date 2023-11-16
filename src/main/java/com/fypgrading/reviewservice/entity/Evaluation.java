@@ -1,5 +1,9 @@
 package com.fypgrading.reviewservice.entity;
 
+import com.fypgrading.reviewservice.entity.validationGroups.SubmitEvaluationValidationGroup;
+import com.fypgrading.reviewservice.enums.AssessmentEnum;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -23,6 +27,13 @@ public class Evaluation {
 
     @NotNull
     private Integer teamId;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private AssessmentEnum assessment;
+
+    @NotNull
+    private Boolean isSubmitted;
 
     @NotNull
     private List<GradedRubric> gradedRubrics;

@@ -3,7 +3,7 @@ package com.fypgrading.reviewservice.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fypgrading.reviewservice.config.RabbitConfig;
 import com.fypgrading.reviewservice.exceptions.RabbitException;
-import com.fypgrading.reviewservice.service.event.EvaluationSubmittedEvent;
+import com.fypgrading.reviewservice.service.dto.EvaluationSubmissionDTO;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +34,13 @@ public class EventHandler implements ChannelAwareMessageListener {
     @Override
     public void onMessage(Message message, Channel channel) {
         byte[] body = message.getBody();
-        EvaluationSubmittedEvent event;
+        EvaluationSubmissionDTO event;
         String messageBody = new String(body);
         logger.info("Evaluation Submitted event received: " + messageBody);
 
         try {
-            event = objectMapper.readValue(messageBody, EvaluationSubmittedEvent.class);
-            evaluationService.searchForReviewers(event);
+            event = objectMapper.readValue(messageBody, EvaluationSubmissionDTO.class);
+            evaluationService.submitAssessmentGrade(event);
         }
         catch (Exception ex) {
             RabbitException exception = new RabbitException("Exception raised!", message, channel);

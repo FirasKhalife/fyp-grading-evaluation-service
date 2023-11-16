@@ -1,23 +1,20 @@
 package com.fypgrading.reviewservice.service.dto;
 
+import com.fypgrading.reviewservice.enums.AssessmentEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EvaluationDTO {
-
-    private Long id;
-
-    private Integer reviewerId;
+public class EvaluationSubmissionDTO {
 
     private Integer teamId;
 
-    private Boolean isSubmitted;
+    private Integer reviewerId;
 
-    private List<GradedRubricDTO> gradedRubrics;
+    private AssessmentEnum assessment;
+
+    private Float grade;
 }
