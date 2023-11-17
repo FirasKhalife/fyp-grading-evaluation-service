@@ -1,6 +1,5 @@
 package com.fypgrading.reviewservice.entity;
 
-import com.fypgrading.reviewservice.entity.validationGroups.SubmitEvaluationValidationGroup;
 import com.fypgrading.reviewservice.enums.AssessmentEnum;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -20,7 +19,7 @@ import java.util.List;
 public class Evaluation {
 
     @Id
-    private Long id;
+    private String id;
 
     @NotNull
     private Integer reviewerId;

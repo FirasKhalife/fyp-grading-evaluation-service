@@ -1,6 +1,5 @@
 package com.fypgrading.reviewservice.service.dto;
 
-import com.fypgrading.reviewservice.enums.AssessmentEnum;
 import com.fypgrading.reviewservice.service.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;

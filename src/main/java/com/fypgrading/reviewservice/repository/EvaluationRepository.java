@@ -3,11 +3,11 @@ package com.fypgrading.reviewservice.repository;
 import com.fypgrading.reviewservice.entity.Evaluation;
 import com.fypgrading.reviewservice.enums.AssessmentEnum;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface EvaluationRepository extends MongoRepository<Evaluation, Long> {
+public interface EvaluationRepository extends MongoRepository<Evaluation, String> {
 
     Long countByTeamId(Integer teamId);
 
@@ -15,7 +15,7 @@ public interface EvaluationRepository extends MongoRepository<Evaluation, Long> 
 
     List<Evaluation> getAllByAssessmentAndTeamId(AssessmentEnum assessment, Integer teamId);
 
-    Evaluation getByIdAndIsSubmitted(Long id, boolean b);
+    Evaluation getByIdAndIsSubmitted(String id, boolean b);
 
-    Evaluation getByReviewerIdAndTeamIdAndAssessment(int reviewerId, int teamId, AssessmentEnum assessment);
+    Optional<Evaluation> findByReviewerIdAndTeamIdAndAssessment(int reviewerId, int teamId, AssessmentEnum assessment);
 }

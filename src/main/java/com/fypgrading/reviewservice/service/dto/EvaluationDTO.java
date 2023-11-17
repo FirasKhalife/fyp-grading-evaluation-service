@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class EvaluationDTO {
 
-    private Long id;
+    private String id;
 
     private Integer reviewerId;
 

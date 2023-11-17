@@ -15,6 +15,6 @@ public class WebConfig implements WebMvcConfigurer {
                 addMapping("/**")
                 .allowedMethods("*")
                 .allowedHeaders("*")
-                .allowedOriginPatterns("http://localhost:[*]");
+                .allowedOriginPatterns("*");
     }
 }

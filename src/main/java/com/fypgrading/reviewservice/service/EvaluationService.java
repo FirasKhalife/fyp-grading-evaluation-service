@@ -6,8 +6,6 @@ import com.fypgrading.reviewservice.enums.AssessmentEnum;
 import com.fypgrading.reviewservice.repository.EvaluationRepository;
 import com.fypgrading.reviewservice.service.dto.EvaluationDTO;
 import com.fypgrading.reviewservice.service.dto.EvaluationSubmissionDTO;
-import com.fypgrading.reviewservice.service.dto.NotificationDTO;
-import com.fypgrading.reviewservice.service.dto.ReviewerDTO;
 import com.fypgrading.reviewservice.service.mapper.EvaluationMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.core.ParameterizedTypeReference;
@@ -27,12 +25,10 @@ public class EvaluationService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final EvaluationRepository evaluationRepository;
-    private final EventDispatcher eventDispatcher;
     private final EvaluationMapper evaluationMapper;
 
-    public EvaluationService(EvaluationRepository evaluationRepository, EvaluationMapper evaluationMapper, EventDispatcher eventDispatcher) {
+    public EvaluationService(EvaluationRepository evaluationRepository, EvaluationMapper evaluationMapper) {
         this.evaluationRepository = evaluationRepository;
-        this.eventDispatcher = eventDispatcher;
         this.evaluationMapper = evaluationMapper;
     }
 
@@ -44,13 +40,15 @@ public class EvaluationService {
     public EvaluationDTO getEvaluationByReviewerIdAndTeamIdAndAssessment(
             Integer reviewerId, Integer teamId, String assessmentStr
     ) {
-        AssessmentEnum assessment = AssessmentEnum.valueOf(assessmentStr);
+        AssessmentEnum assessment = AssessmentEnum.valueOf(assessmentStr.toUpperCase());
         Evaluation evaluation =
-                evaluationRepository.getByReviewerIdAndTeamIdAndAssessment(teamId, reviewerId, assessment);
+                evaluationRepository.findByReviewerIdAndTeamIdAndAssessment(teamId, reviewerId, assessment)
+                        .orElseThrow(() -> new EntityNotFoundException("No evaluation found"));
+        System.out.println("Evaluation: " + evaluation);
         return evaluationMapper.toDTO(evaluation);
     }
 
-    public EvaluationDTO getEvaluation(Long id) {
+    public EvaluationDTO getEvaluation(String id) {
         Evaluation evaluation = evaluationRepository.getByIdAndIsSubmitted(id, false);
         return evaluationMapper.toDTO(evaluation);
     }
@@ -84,7 +82,7 @@ public class EvaluationService {
         return evaluationMapper.toDTO(createdEvaluation);
     }
 
-    public EvaluationDTO updateEvaluation(Long id, EvaluationDTO gradingDTO) {
+    public EvaluationDTO updateEvaluation(String id, EvaluationDTO gradingDTO) {
         if (getEvaluationById(id).getIsSubmitted()) {
             throw new IllegalStateException("Evaluation is submitted, cannot be modified.");
         }
@@ -99,32 +97,15 @@ public class EvaluationService {
         return evaluationMapper.toDTO(grading);
     }
 
-    public EvaluationDTO deleteEvaluation(Long id) {
+    public EvaluationDTO deleteEvaluation(String id) {
         Evaluation grading = getEvaluationById(id);
         evaluationRepository.delete(grading);
         return evaluationMapper.toDTO(grading);
     }
 
-    private Evaluation getEvaluationById(Long id) {
+    private Evaluation getEvaluationById(String id) {
         return evaluationRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("Evaluation not found"));
-    }
-
-    public void submitAssessmentGrade(EvaluationSubmissionDTO evaluationSubmission) {
-        ResponseEntity<NotificationDTO> notificationResponse = restTemplate.exchange(
-                "http://localhost:8082/api/grades/" + evaluationSubmission.getAssessment().name()
-                        + evaluationSubmission.getReviewerId() + "/" + evaluationSubmission.getTeamId(),
-                HttpMethod.GET, null, new ParameterizedTypeReference<>() {}
-        );
-        NotificationDTO notification;
-        if (notificationResponse.getStatusCode() != HttpStatus.OK
-            || (notification = notificationResponse.getBody()) == null
-            || !notification.getNotifyAdmin()) {
-            return;
-        }
-
-        evaluationSubmissionDispatcher.sendNotification(evaluationSubmission.getTeamId());
-
     }
 
     public List<EvaluationDTO> getTeamEvaluationByAssessment(String assessmentStr, Integer teamId) {

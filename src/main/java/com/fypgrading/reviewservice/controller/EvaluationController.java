@@ -54,13 +54,13 @@ public class EvaluationController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EvaluationDTO> updateEvaluation(@PathVariable Long id, @RequestBody EvaluationDTO gradingDTO) {
+    public ResponseEntity<EvaluationDTO> updateEvaluation(@PathVariable String id, @RequestBody EvaluationDTO gradingDTO) {
         EvaluationDTO updateEvaluation = evaluationService.updateEvaluation(id, gradingDTO);
         return ResponseEntity.ok().body(updateEvaluation);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<EvaluationDTO> deleteEvaluation(@PathVariable Long id) {
+    public ResponseEntity<EvaluationDTO> deleteEvaluation(@PathVariable String id) {
         EvaluationDTO deletedEvaluation = evaluationService.deleteEvaluation(id);
         return ResponseEntity.ok().body(deletedEvaluation);
     }
