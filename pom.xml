@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.fyp-grading</groupId>
-	<artifactId>review-service</artifactId>
+	<artifactId>evaluation-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>review-service</name>
-	<description>FYP Evaluation project - review microservice</description>
+	<name>evaluation-service</name>
+	<description>FYP Evaluation project - Evaluation Microservice</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>

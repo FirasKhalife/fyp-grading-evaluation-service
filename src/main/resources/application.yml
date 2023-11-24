@@ -1,39 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://admin:admin@localhost:27017/fyp-grading?authSource=admin&authMechanism=SCRAM-SHA-1
-
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: admin
-    password: admin
-
-    notification:
-      queue: "notification-queue"
-      exchange: "notification-exchange"
-      routing-key: "notification-key"
-
-    retry-notification:
-      exchange: "retry-notification-exchange"
-      routing-key: "retry-notification-key"
-
-    grades:
-      queue: "grades-queue"
-      exchange: "grades-exchange"
-      routing-key: "grades-key"
-
-    retry-grades:
-      queue: "retry-grades-queue"
-      exchange: "retry-grades-exchange"
-      routing-key: "retry-grades-key"
-      ttl: 2000
-      max-count: 3
-
-    dead-letter:
-      queue: "dead-queue"
-      exchange: "dead-exchange"
-      routing-key: "dead-key"
+      uri: mongodb://admin:admin@localhost:27017/evaluation-db?authSource=admin&authMechanism=SCRAM-SHA-1
 
 server:
   port: 8082
