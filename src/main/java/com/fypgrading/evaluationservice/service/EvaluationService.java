@@ -5,7 +5,9 @@ import com.fypgrading.evaluationservice.exception.BadResponseException;
 import com.fypgrading.evaluationservice.exception.ExceptionResponse;
 import com.fypgrading.evaluationservice.repository.EvaluationRepository;
 import com.fypgrading.evaluationservice.service.dto.EvaluationDTO;
-import com.fypgrading.evaluationservice.service.dto.TeamGradeDTO;
+import com.fypgrading.evaluationservice.service.dto.GradedRubricDTO;
+import com.fypgrading.evaluationservice.service.dto.RubricDTO;
+import com.fypgrading.evaluationservice.service.dto.GradeIDsDTO;
 import com.fypgrading.evaluationservice.service.mapper.EvaluationMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.core.ParameterizedTypeReference;
@@ -40,11 +42,30 @@ public class EvaluationService {
     public EvaluationDTO getEvaluationByReviewerIdAndTeamIdAndAssessment(
             Integer reviewerId, Integer teamId, String assessment
     ) {
-        Evaluation evaluation =
-                evaluationRepository.findByReviewerIdAndTeamIdAndAssessment(
+        Optional<Evaluation> evaluation = evaluationRepository.findByReviewerIdAndTeamIdAndAssessment(
                         reviewerId, teamId, assessment.toUpperCase()
-                ).orElseThrow(() -> new EntityNotFoundException("No evaluation found"));
-        return evaluationMapper.toDTO(evaluation);
+        );
+
+        if (evaluation.isPresent())
+            return evaluationMapper.toDTO(evaluation.get());
+
+        ResponseEntity<List<RubricDTO>> assessmentRubrics = restTemplate.exchange(
+                "http://localhost:8083/api/rubrics/" + assessment,
+                HttpMethod.GET, null, new ParameterizedTypeReference<>() {}
+        );
+
+        if (assessmentRubrics.getStatusCode().isError()) {
+            throw new BadResponseException(assessmentRubrics.getStatusCode(),
+                    (ExceptionResponse) assessmentRubrics.getBody());
+        }
+
+        List<RubricDTO> rubrics = assessmentRubrics.getBody();
+        assert rubrics != null;
+
+        return new EvaluationDTO(
+                reviewerId, teamId, assessment,
+                rubrics.stream().map(rubric -> new GradedRubricDTO(rubric.getName(), rubric.getPercentage(), 0)).toList()
+        );
     }
 
     public EvaluationDTO getEvaluation(String id) {
@@ -72,7 +93,7 @@ public class EvaluationService {
         evaluation.setIsSubmitted(true);
         Evaluation createdEvaluation = evaluationRepository.save(evaluation);
 
-        TeamGradeDTO grade = new TeamGradeDTO();
+        GradeIDsDTO grade = new GradeIDsDTO();
         grade.setReviewerId(createdEvaluation.getReviewerId());
         grade.setTeamId(createdEvaluation.getTeamId());
         grade.setAssessment(createdEvaluation.getAssessment());
@@ -86,8 +107,6 @@ public class EvaluationService {
                 "http://localhost:8081/api/grades/", HttpMethod.POST,
                 new HttpEntity<>(grade), new ParameterizedTypeReference<>() {}
         );
-
-        System.out.println(response);
 
         if (response.getStatusCode() != HttpStatus.OK) {
             throw new BadResponseException(response.getStatusCode(), (ExceptionResponse) response.getBody());

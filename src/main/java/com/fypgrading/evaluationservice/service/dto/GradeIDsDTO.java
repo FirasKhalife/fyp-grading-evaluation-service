@@ -7,8 +7,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CountDTO {
+public class GradeIDsDTO {
 
-    private Long count;
+    private Integer teamId;
 
+    private Integer reviewerId;
+
+    private String assessment;
+
+    private Float grade;
 }

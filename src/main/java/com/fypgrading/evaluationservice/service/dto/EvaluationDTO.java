@@ -20,4 +20,11 @@ public class EvaluationDTO {
     private String assessment;
 
     private List<GradedRubricDTO> gradedRubrics;
+
+    public EvaluationDTO(Integer reviewerId, Integer teamId, String assessment, List<GradedRubricDTO> gradedRubrics) {
+        this.reviewerId = reviewerId;
+        this.teamId = teamId;
+        this.assessment = assessment;
+        this.gradedRubrics = gradedRubrics;
+    }
 }
