@@ -83,7 +83,7 @@ public class EvaluationService {
         grade.setGrade((float) finalGrade);
 
         ResponseEntity<Object> response = restTemplate.exchange(
-                "http://localhost:8081/api/grades/", HttpMethod.POST,
+                "http://localhost:9191/api/grades/", HttpMethod.POST,
                 new HttpEntity<>(grade), new ParameterizedTypeReference<>() {}
         );
 
