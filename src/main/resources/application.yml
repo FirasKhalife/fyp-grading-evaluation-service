@@ -2,6 +2,18 @@ spring:
   data:
     mongodb:
       uri: mongodb://admin:admin@localhost:27017/evaluation-db?authSource=admin&authMechanism=SCRAM-SHA-1
+  application:
+      name: evaluation-service
+
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka/
+    healthcheck:
+      enabled: true
+  instance:
+    lease-expiration-duration-in-seconds: 2
+    lease-renewal-interval-in-seconds: 1
 
 server:
   port: 8082

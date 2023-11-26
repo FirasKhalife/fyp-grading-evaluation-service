@@ -1,9 +1,9 @@
-FROM openjdk:11-jre-slim
+FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-COPY target/your-application.jar ./app.jar
+COPY target/evaluation-service-0.0.1-SNAPSHOT.jar ./evaluation.jar
 
-EXPOSE 8080
+EXPOSE 8082
 
-CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "evaluation.jar"]
