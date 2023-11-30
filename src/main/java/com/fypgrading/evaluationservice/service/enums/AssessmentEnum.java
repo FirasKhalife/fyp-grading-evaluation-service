@@ -8,18 +8,22 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum AssessmentEnum {
 
-    @JsonProperty("ORAL_PROPOSAL")
-    ORAL_PROPOSAL,
+    @JsonProperty("PROPOSAL_PRESENTATION")
+    PROPOSAL_PRESENTATION,
 
-    @JsonProperty("PROGRESS")
-    PROGRESS,
+    @JsonProperty("PROGRESS_REPORT")
+    PROGRESS_REPORT,
 
-    @JsonProperty("ADVISOR")
-    ADVISOR,
+    @JsonProperty("ADVISOR_ASSESSMENT")
+    ADVISOR_ASSESSMENT,
 
     @JsonProperty("FINAL_REPORT")
     FINAL_REPORT,
 
     @JsonProperty("FINAL_PRESENTATION")
-    FINAL_PRESENTATION
+    FINAL_PRESENTATION;
+
+    public Integer getEnumId() {
+        return ordinal() + 1;
+    }
 }

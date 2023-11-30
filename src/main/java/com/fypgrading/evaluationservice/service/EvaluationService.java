@@ -4,17 +4,11 @@ import com.fypgrading.evaluationservice.entity.Evaluation;
 import com.fypgrading.evaluationservice.exception.BadResponseException;
 import com.fypgrading.evaluationservice.exception.ExceptionResponse;
 import com.fypgrading.evaluationservice.repository.EvaluationRepository;
-import com.fypgrading.evaluationservice.service.dto.EvaluationDTO;
-import com.fypgrading.evaluationservice.service.dto.GradedRubricDTO;
-import com.fypgrading.evaluationservice.service.dto.RubricDTO;
-import com.fypgrading.evaluationservice.service.dto.GradeIDsDTO;
+import com.fypgrading.evaluationservice.service.dto.*;
 import com.fypgrading.evaluationservice.service.mapper.EvaluationMapper;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,10 +22,17 @@ public class EvaluationService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final EvaluationRepository evaluationRepository;
     private final EvaluationMapper evaluationMapper;
+    private final String GATEWAY_URL;
 
-    public EvaluationService(EvaluationRepository evaluationRepository, EvaluationMapper evaluationMapper) {
+
+    public EvaluationService(
+            @Value("${app.gateway-url}") String gateway_url,
+            EvaluationRepository evaluationRepository,
+            EvaluationMapper evaluationMapper
+    ) {
         this.evaluationRepository = evaluationRepository;
         this.evaluationMapper = evaluationMapper;
+        this.GATEWAY_URL = gateway_url;
     }
 
     public List<EvaluationDTO> getSubmittedEvaluations() {
@@ -49,18 +50,17 @@ public class EvaluationService {
         if (evaluation.isPresent())
             return evaluationMapper.toDTO(evaluation.get());
 
-        ResponseEntity<List<RubricDTO>> assessmentRubrics = restTemplate.exchange(
-                "http://localhost:8083/api/rubrics/" + assessment,
-                HttpMethod.GET, null, new ParameterizedTypeReference<>() {}
+        RubricDTOList assessmentRubricList = restTemplate.getForObject(
+                GATEWAY_URL + "/api/rubrics/" + assessment, RubricDTOList.class
         );
 
-        if (assessmentRubrics.getStatusCode().isError()) {
-            throw new BadResponseException(assessmentRubrics.getStatusCode(),
-                    (ExceptionResponse) assessmentRubrics.getBody());
+        if (assessmentRubricList == null) {
+            throw new BadResponseException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    new ExceptionResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                                        "Connection problem with rubric service"));
         }
 
-        List<RubricDTO> rubrics = assessmentRubrics.getBody();
-        assert rubrics != null;
+        List<RubricDTO> rubrics = assessmentRubricList.getRubrics();
 
         return new EvaluationDTO(
                 reviewerId, teamId, assessment,
@@ -93,23 +93,24 @@ public class EvaluationService {
         evaluation.setIsSubmitted(true);
         Evaluation createdEvaluation = evaluationRepository.save(evaluation);
 
-        GradeIDsDTO grade = new GradeIDsDTO();
-        grade.setReviewerId(createdEvaluation.getReviewerId());
-        grade.setTeamId(createdEvaluation.getTeamId());
-        grade.setAssessment(createdEvaluation.getAssessment());
+        GradeIDsDTO gradeIDsDTO = new GradeIDsDTO();
+        gradeIDsDTO.setReviewerId(createdEvaluation.getReviewerId());
+        gradeIDsDTO.setTeamId(createdEvaluation.getTeamId());
+        gradeIDsDTO.setAssessment(createdEvaluation.getAssessment());
 
         double finalGrade = evaluation.getGradedRubrics()
                 .parallelStream().reduce(0.0, (acc, rubric) ->
                         acc + rubric.getGrade() * rubric.getPercentage(), Double::sum) / 4;
-        grade.setGrade((float) finalGrade);
+        gradeIDsDTO.setGrade((float) finalGrade);
 
-        ResponseEntity<Object> response = restTemplate.exchange(
-                "http://localhost:9191/api/grades/", HttpMethod.POST,
-                new HttpEntity<>(grade), new ParameterizedTypeReference<>() {}
+        Object response = restTemplate.postForObject(
+                GATEWAY_URL + "/api/grades/", gradeIDsDTO, Object.class
         );
 
-        if (response.getStatusCode() != HttpStatus.OK) {
-            throw new BadResponseException(response.getStatusCode(), (ExceptionResponse) response.getBody());
+        if (response == null) {
+            throw new BadResponseException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    new ExceptionResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                            "Connection problem with rubric service"));
         }
 
         return evaluationMapper.toDTO(createdEvaluation);
