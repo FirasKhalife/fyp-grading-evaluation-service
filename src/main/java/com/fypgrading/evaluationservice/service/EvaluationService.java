@@ -7,7 +7,6 @@ import com.fypgrading.evaluationservice.repository.EvaluationRepository;
 import com.fypgrading.evaluationservice.service.dto.*;
 import com.fypgrading.evaluationservice.service.mapper.EvaluationMapper;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,20 +18,18 @@ import java.util.Optional;
 @Service
 public class EvaluationService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
     private final EvaluationRepository evaluationRepository;
     private final EvaluationMapper evaluationMapper;
-    private final String GATEWAY_URL;
-
+    private final RestTemplate restTemplate;
 
     public EvaluationService(
-            @Value("${app.gateway-url}") String gateway_url,
             EvaluationRepository evaluationRepository,
-            EvaluationMapper evaluationMapper
+            EvaluationMapper evaluationMapper,
+            RestTemplate restTemplate
     ) {
         this.evaluationRepository = evaluationRepository;
         this.evaluationMapper = evaluationMapper;
-        this.GATEWAY_URL = gateway_url;
+        this.restTemplate = restTemplate;
     }
 
     public List<EvaluationDTO> getSubmittedEvaluations() {
@@ -51,7 +48,7 @@ public class EvaluationService {
             return evaluationMapper.toDTO(evaluation.get());
 
         RubricDTOList assessmentRubricList = restTemplate.getForObject(
-                GATEWAY_URL + "/api/rubrics/" + assessment, RubricDTOList.class
+                "http://api-gateway/api/rubrics/" + assessment, RubricDTOList.class
         );
 
         if (assessmentRubricList == null) {
@@ -104,7 +101,7 @@ public class EvaluationService {
         gradeIDsDTO.setGrade((float) finalGrade);
 
         Object response = restTemplate.postForObject(
-                GATEWAY_URL + "/api/grades/", gradeIDsDTO, Object.class
+                "http://api-gateway/api/grades/", gradeIDsDTO, Object.class
         );
 
         if (response == null) {
