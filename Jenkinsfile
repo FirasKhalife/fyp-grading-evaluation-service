@@ -121,8 +121,8 @@ pipeline {
         success {
             setBuildStatus("Build succeeded", "SUCCESS");
             emailext (
-                subject: "Build SUCCESS - #${env.BUILD_NUMBER}",
-                body: "The build was successful! Build Number: ${env.BUILD_NUMBER}",
+                subject: "Build SUCCESS - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "The build of ${env.JOB_NAME} was successful! Build Number: ${env.BUILD_NUMBER}",
                 from: "gaellesaid65@gmail.com",
                 to: "gaellesaid5@gmail.com",
                 replyTo: "gaellesaid65@gmail.com"
@@ -132,8 +132,8 @@ pipeline {
             setBuildStatus("Build failed", "FAILURE");
             emailext (
                 attachLog: true,
-                subject: "Build FAILURE - #${env.BUILD_NUMBER}",
-                body: "The build failed. Please find the attached logs for details. Build Number: ${env.BUILD_NUMBER}\nPlease go to ${env.BUILD_URL}/consoleText for more details.",
+                subject: "Build FAILURE - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "The build of ${env.JOB_NAME} failed. Please find the attached logs for details. Build Number: ${env.BUILD_NUMBER}\nPlease go to ${env.BUILD_URL}/consoleText for more details.",
                 from: "gaellesaid65@gmail.com",
                 to: "gaellesaid5@gmail.com",
                 replyTo: "gaellesaid65@gmail.com",
