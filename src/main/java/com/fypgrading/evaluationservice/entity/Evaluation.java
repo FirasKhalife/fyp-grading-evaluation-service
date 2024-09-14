@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "evaluation")
-public class Evaluation {
+public class Evaluation extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
