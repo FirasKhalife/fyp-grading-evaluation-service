@@ -22,10 +22,10 @@ public class Evaluation extends Auditable {
     private String id;
 
     @NotNull
-    private Integer reviewerId;
+    private Long reviewerId;
 
     @NotNull
-    private Integer teamId;
+    private Long teamId;
 
     @NotNull
     private String assessment;

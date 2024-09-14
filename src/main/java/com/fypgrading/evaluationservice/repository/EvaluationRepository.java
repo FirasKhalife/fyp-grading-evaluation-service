@@ -8,13 +8,13 @@ import java.util.Optional;
 
 public interface EvaluationRepository extends MongoRepository<Evaluation, String> {
 
-    Long countByTeamId(Integer teamId);
+    Long countByTeamId(Long teamId);
 
     List<Evaluation> getAllByIsSubmitted(boolean isSubmitted);
 
-    List<Evaluation> getAllByAssessmentAndTeamId(String assessment, Integer teamId);
+    List<Evaluation> getAllByAssessmentAndTeamId(String assessment, Long teamId);
 
     Evaluation getByIdAndIsSubmitted(String id, boolean b);
 
-    Optional<Evaluation> findByReviewerIdAndTeamIdAndAssessment(int reviewerId, int teamId, String assessment);
+    Optional<Evaluation> findByReviewerIdAndTeamIdAndAssessment(Long reviewerId, Long teamId, String assessment);
 }

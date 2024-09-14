@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GradeIDsDTO {
 
-    private Integer teamId;
+    private Long teamId;
 
-    private Integer reviewerId;
+    private Long reviewerId;
 
     private String assessment;
 

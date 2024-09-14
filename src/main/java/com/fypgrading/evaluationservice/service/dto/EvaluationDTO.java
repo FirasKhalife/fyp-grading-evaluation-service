@@ -13,15 +13,15 @@ public class EvaluationDTO {
 
     private String id;
 
-    private Integer reviewerId;
+    private Long reviewerId;
 
-    private Integer teamId;
+    private Long teamId;
 
     private String assessment;
 
     private List<GradedRubricDTO> gradedRubrics;
 
-    public EvaluationDTO(Integer reviewerId, Integer teamId, String assessment, List<GradedRubricDTO> gradedRubrics) {
+    public EvaluationDTO(Long reviewerId, Long teamId, String assessment, List<GradedRubricDTO> gradedRubrics) {
         this.reviewerId = reviewerId;
         this.teamId = teamId;
         this.assessment = assessment;

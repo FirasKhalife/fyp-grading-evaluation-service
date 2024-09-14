@@ -28,7 +28,7 @@ public class EvaluationController {
 
     @GetMapping("/{assessment}/{reviewerId}/{teamId}")
     public ResponseEntity<EvaluationDTO> getEvaluationByReviewerIdAndTeamIdAndAssessment(
-            @PathVariable String assessment, @PathVariable Integer reviewerId, @PathVariable Integer teamId
+            @PathVariable String assessment, @PathVariable Long reviewerId, @PathVariable Long teamId
     ) {
         EvaluationDTO evaluation =
                 evaluationService.getEvaluationByReviewerIdAndTeamIdAndAssessment(
@@ -39,7 +39,7 @@ public class EvaluationController {
 
     @GetMapping("/{assessment}/{teamId}")
     public ResponseEntity<EvaluationDTOList> getTeamEvaluationsByAssessment(@PathVariable String assessment,
-                                                            @PathVariable Integer teamId) {
+                                                                            @PathVariable Long teamId) {
         List<EvaluationDTO> evaluations = evaluationService.getTeamEvaluationByAssessment(assessment, teamId);
         return ResponseEntity.ok().body(new EvaluationDTOList(evaluations));
     }

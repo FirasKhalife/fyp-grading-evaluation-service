@@ -38,7 +38,7 @@ public class EvaluationService {
     }
 
     public EvaluationDTO getEvaluationByReviewerIdAndTeamIdAndAssessment(
-            Integer reviewerId, Integer teamId, String assessment
+        Long reviewerId, Long teamId, String assessment
     ) {
         Optional<Evaluation> evaluation = evaluationRepository.findByReviewerIdAndTeamIdAndAssessment(
                         reviewerId, teamId, assessment.toUpperCase()
@@ -140,7 +140,7 @@ public class EvaluationService {
                 new EntityNotFoundException("Evaluation not found"));
     }
 
-    public List<EvaluationDTO> getTeamEvaluationByAssessment(String assessment, Integer teamId) {
+    public List<EvaluationDTO> getTeamEvaluationByAssessment(String assessment, Long teamId) {
         List<Evaluation> evaluations =
                 evaluationRepository.getAllByAssessmentAndTeamId(assessment.toUpperCase(), teamId);
         return evaluationMapper.toDTOList(evaluations);
