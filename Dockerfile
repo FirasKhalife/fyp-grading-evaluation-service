@@ -1,9 +1,18 @@
+# Stage 1: Build the JAR file using Maven
+FROM maven:3.8.5-openjdk-17 AS build
+
+WORKDIR /app
+
+COPY pom.xml .
+COPY src src
+
+RUN mvn clean package -DskipTests
+
+# Stage 2: Create the final image with the built JAR
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-COPY target/evaluation-service-0.0.1-SNAPSHOT.jar ./evaluation.jar
+COPY --from=build /app/target/account-service-0.0.1-SNAPSHOT.jar /app/evaluation.jar
 
-EXPOSE 8082
-
-CMD ["java", "-jar", "evaluation.jar"]
+ENTRYPOINT ["java", "-jar", "evaluation.jar"]

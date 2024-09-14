@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Evaluation Service" type="Application" factoryName="Application">
+    <envs>
+      <env name="DATABASE_URL" value="mongodb://admin:admin@localhost:27017/evaluation-db?authSource=admin&amp;authMechanism=SCRAM-SHA-1" />
+      <env name="REGISTRY_SERVICE_URL" value="http://localhost:8761/eureka/" />
+      <env name="SPRING_PROFILES_ACTIVE" value="dev" />
+      <env name="PORT" value="8082" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.fypgrading.evaluationservice.EvaluationServiceApplication" />
+    <module name="evaluation-service" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
