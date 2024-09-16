@@ -4,20 +4,33 @@ import com.fypgrading.evaluationservice.entity.validationGroups.SubmitEvaluation
 import com.fypgrading.evaluationservice.service.EvaluationService;
 import com.fypgrading.evaluationservice.service.dto.EvaluationDTO;
 import com.fypgrading.evaluationservice.service.dto.EvaluationDTOList;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@RefreshScope
 @RestController
 @RequestMapping("/api/evaluations")
 public class EvaluationController {
 
     private final EvaluationService evaluationService;
+    private final String buildVersion;
 
-    public EvaluationController(EvaluationService evaluationService) {
+    public EvaluationController(
+        EvaluationService evaluationService,
+        @Value("${build.version}") String buildVersion
+    ) {
         this.evaluationService = evaluationService;
+        this.buildVersion = buildVersion;
+    }
+
+    @GetMapping("/build-version")
+    public ResponseEntity<String> getBuildVersion() {
+        return ResponseEntity.ok().body(buildVersion);
     }
 
     @GetMapping("/")

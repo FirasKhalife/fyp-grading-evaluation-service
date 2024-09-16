@@ -3,9 +3,40 @@ logging:
     root: INFO
 
 spring:
+  application:
+    name: evaluation
+
   data:
     mongodb:
       uri: ${DATABASE_URL}
+
+  config:
+    import: configserver:${CONFIG_SERVER_URL}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+# expose /actuator endpoints over HTTP
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  # /actuator/health
+  # /actuator/health/liveness
+  # /actuator/health/readiness
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
 
 #eureka:
 #  client:

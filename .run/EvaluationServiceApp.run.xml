@@ -3,6 +3,11 @@
     <envs>
       <env name="DATABASE_URL" value="mongodb://admin:admin@localhost:27017/evaluation-db?authSource=admin&amp;authMechanism=SCRAM-SHA-1" />
       <env name="REGISTRY_SERVICE_URL" value="http://localhost:8761/eureka/" />
+      <env name="CONFIG_SERVER_URL" value="http://localhost:8071/" />
+      <env name="RABBITMQ_HOST" value="localhost" />
+      <env name="RABBITMQ_PORT" value="5672" />
+      <env name="RABBITMQ_USERNAME" value="admin" />
+      <env name="RABBITMQ_PASSWORD" value="admin" />
       <env name="SPRING_PROFILES_ACTIVE" value="dev" />
       <env name="PORT" value="8084" />
     </envs>
