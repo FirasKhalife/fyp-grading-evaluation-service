@@ -6,7 +6,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
-@FeignClient(name = "${services.rubric-service-name}", path = "/api")
+@FeignClient(
+    name = "${services.rubric-service-name}",
+    path = "/api",
+    fallback = RubricFallback.class
+)
 public interface RubricClient {
 
     @GetMapping("/rubrics/")

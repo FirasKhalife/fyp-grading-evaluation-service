@@ -5,7 +5,11 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "${services.admin-service-name}", path = "/api")
+@FeignClient(
+    name = "${services.admin-service-name}",
+    path = "/api",
+    fallback = AdminFallback.class
+)
 public interface AdminClient {
 
     @PostMapping("/")
