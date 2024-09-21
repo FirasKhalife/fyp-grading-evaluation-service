@@ -1,52 +1,35 @@
+build:
+  version: ${BUILD_VERSION}
+
+info:
+  app:
+    name: ${SPRING_APPLICATION_NAME}
+    description: "FYP Grading project - Evaluation Microservice"
+    version: ${BUILD_VERSION}
+
 logging:
   level:
     root: INFO
 
-spring:
-  application:
-    name: evaluation
+services:
+  admin-service-name: ${ADMIN_SERVICE_NAME}
+  rubric-service-name: ${RUBRIC_SERVICE_NAME}
 
+spring:
   data:
     mongodb:
       uri: ${DATABASE_URL}
 
+  # this will in fact not be used as the service will register with eureka
+  # and get its configuration from the config server dynamically in the bootstrap phase (bootstrap.yml)
   config:
-    import: configserver:${CONFIG_SERVER_URL}
+    import: "optional:configserver:"
 
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT}
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PASSWORD}
-
-# expose /actuator endpoints over HTTP
-management:
-  endpoints:
-    web:
-      exposure:
-        include: '*'
-  # /actuator/health
-  # /actuator/health/liveness
-  # /actuator/health/readiness
-  endpoint:
-    health:
-      probes:
-        enabled: true
-  health:
-    readinessstate:
-      enabled: true
-    livenessstate:
-      enabled: true
-
-#eureka:
-#  client:
-#    service-url:
-#      default-zone: ${REGISTRY_SERVICE_URL}
-#    healthcheck:
-#      enabled: true
-#  instance:
-#    lease-expiration-duration-in-seconds: 2
-#    lease-renewal-interval-in-seconds: 1
 
 server:
   port: ${PORT}

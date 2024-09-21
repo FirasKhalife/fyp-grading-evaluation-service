@@ -3,7 +3,6 @@ package com.fypgrading.evaluationservice.controller;
 import com.fypgrading.evaluationservice.entity.validationGroups.SubmitEvaluationValidationGroup;
 import com.fypgrading.evaluationservice.service.EvaluationService;
 import com.fypgrading.evaluationservice.service.dto.EvaluationDTO;
-import com.fypgrading.evaluationservice.service.dto.EvaluationDTOList;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.ResponseEntity;
@@ -51,10 +50,10 @@ public class EvaluationController {
     }
 
     @GetMapping("/{assessment}/{teamId}")
-    public ResponseEntity<EvaluationDTOList> getTeamEvaluationsByAssessment(@PathVariable String assessment,
+    public ResponseEntity<List<EvaluationDTO>> getTeamEvaluationsByAssessment(@PathVariable String assessment,
                                                                             @PathVariable Long teamId) {
         List<EvaluationDTO> evaluations = evaluationService.getTeamEvaluationByAssessment(assessment, teamId);
-        return ResponseEntity.ok().body(new EvaluationDTOList(evaluations));
+        return ResponseEntity.ok().body(evaluations);
     }
 
     @PostMapping("/draft")
