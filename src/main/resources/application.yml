@@ -11,6 +11,11 @@ logging:
   level:
     root: INFO
 
+management:
+  metrics:
+    tags:
+      application: ${SPRING_APPLICATION_NAME}
+
 services:
   admin-service-name: ${ADMIN_SERVICE_NAME}
   rubric-service-name: ${RUBRIC_SERVICE_NAME}
