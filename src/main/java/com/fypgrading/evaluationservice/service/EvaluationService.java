@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @AllArgsConstructor
 @Service
@@ -23,8 +24,8 @@ public class EvaluationService {
 
     private final EvaluationRepository evaluationRepository;
     private final EvaluationMapper evaluationMapper;
-    private final RubricClient rubricClient;
-    private final AdminClient adminClient;
+    private RubricClient rubricClient;
+    private AdminClient adminClient;
 
     public List<EvaluationDTO> getSubmittedEvaluations() {
         List<Evaluation> gradings = evaluationRepository.getAllByIsSubmitted(true);
@@ -32,7 +33,7 @@ public class EvaluationService {
     }
 
     public EvaluationDTO getEvaluationByReviewerIdAndTeamIdAndAssessment(
-        Long reviewerId, Long teamId, String assessment
+        UUID reviewerId, Long teamId, String assessment
     ) {
         Optional<Evaluation> evaluation = evaluationRepository.findByReviewerIdAndTeamIdAndAssessment(
                         reviewerId, teamId, assessment.toUpperCase()
@@ -117,6 +118,7 @@ public class EvaluationService {
     }
 
     public List<EvaluationDTO> getTeamEvaluationByAssessment(String assessment, Long teamId) {
+        System.out.println("IN EVALUATION");
         List<Evaluation> evaluations =
                 evaluationRepository.getAllByAssessmentAndTeamId(assessment.toUpperCase(), teamId);
         return evaluationMapper.toDTOList(evaluations);

@@ -1,7 +1,6 @@
 package com.fypgrading.evaluationservice.exception;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.security.auth.message.AuthException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -10,12 +9,6 @@ import org.springframework.web.context.request.WebRequest;
 
 @ControllerAdvice
 public class RestExceptionHandler {
-
-    @ExceptionHandler
-    protected ResponseEntity<ExceptionResponse> handleAuthException(AuthException ex, WebRequest request) {
-        ExceptionResponse response = new ExceptionResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-    }
 
     @ExceptionHandler
     protected ResponseEntity<ExceptionResponse> handleIllegalStateException(IllegalStateException ex, WebRequest request) {

@@ -10,6 +10,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RefreshScope
 @RestController
@@ -40,7 +41,7 @@ public class EvaluationController {
 
     @GetMapping("/{assessment}/{reviewerId}/{teamId}")
     public ResponseEntity<EvaluationDTO> getEvaluationByReviewerIdAndTeamIdAndAssessment(
-            @PathVariable String assessment, @PathVariable Long reviewerId, @PathVariable Long teamId
+        @PathVariable String assessment, @PathVariable UUID reviewerId, @PathVariable Long teamId
     ) {
         EvaluationDTO evaluation =
                 evaluationService.getEvaluationByReviewerIdAndTeamIdAndAssessment(
@@ -50,8 +51,7 @@ public class EvaluationController {
     }
 
     @GetMapping("/{assessment}/{teamId}")
-    public ResponseEntity<List<EvaluationDTO>> getTeamEvaluationsByAssessment(@PathVariable String assessment,
-                                                                            @PathVariable Long teamId) {
+    public ResponseEntity<List<EvaluationDTO>> getTeamEvaluationsByAssessment(@PathVariable String assessment, @PathVariable Long teamId) {
         List<EvaluationDTO> evaluations = evaluationService.getTeamEvaluationByAssessment(assessment, teamId);
         return ResponseEntity.ok().body(evaluations);
     }

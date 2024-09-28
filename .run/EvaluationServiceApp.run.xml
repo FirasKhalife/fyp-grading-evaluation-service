@@ -7,6 +7,7 @@
       <env name="RABBITMQ_PORT" value="5672" />
       <env name="RABBITMQ_USERNAME" value="admin" />
       <env name="RABBITMQ_PASSWORD" value="admin" />
+      <env name="AUTH_SERVER_URL" value="http://localhost:7080/realms/master" />
       <env name="ADMIN_SERVICE_NAME" value="admin-service" />
       <env name="RUBRIC_SERVICE_NAME" value="rubric-service" />
       <env name="SPRING_APPLICATION_NAME" value="evaluation-service" />

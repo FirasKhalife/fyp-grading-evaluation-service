@@ -2,10 +2,12 @@ package com.fypgrading.evaluationservice.service.client;
 
 import com.fypgrading.evaluationservice.service.dto.RubricDTO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
+@Primary
 @FeignClient(
     name = "${services.rubric-service-name}",
     path = "/api",

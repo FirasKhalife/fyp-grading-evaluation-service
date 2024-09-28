@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -22,7 +23,7 @@ public class Evaluation extends Auditable {
     private String id;
 
     @NotNull
-    private Long reviewerId;
+    private UUID reviewerId;
 
     @NotNull
     private Long teamId;

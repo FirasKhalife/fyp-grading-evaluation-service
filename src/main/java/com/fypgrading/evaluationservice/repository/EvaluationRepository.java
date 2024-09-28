@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface EvaluationRepository extends MongoRepository<Evaluation, String> {
 
@@ -16,5 +17,5 @@ public interface EvaluationRepository extends MongoRepository<Evaluation, String
 
     Evaluation getByIdAndIsSubmitted(String id, boolean b);
 
-    Optional<Evaluation> findByReviewerIdAndTeamIdAndAssessment(Long reviewerId, Long teamId, String assessment);
+    Optional<Evaluation> findByReviewerIdAndTeamIdAndAssessment(UUID reviewerId, Long teamId, String assessment);
 }
