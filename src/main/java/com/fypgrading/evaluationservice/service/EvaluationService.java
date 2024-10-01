@@ -81,7 +81,7 @@ public class EvaluationService {
         gradeIDsDTO.setAssessment(createdEvaluation.getAssessment());
 
         double finalGrade = evaluation.getGradedRubrics()
-                .parallelStream().reduce(0.0, (acc, rubric) ->
+                .stream().reduce(0.0, (acc, rubric) ->
                         acc + rubric.getGrade() * rubric.getPercentage(), Double::sum) / 4;
         gradeIDsDTO.setGrade((float) finalGrade);
 
@@ -91,13 +91,11 @@ public class EvaluationService {
     }
 
     public EvaluationDTO updateEvaluation(String id, EvaluationDTO evaluationDTO) {
-        if (getEvaluationById(id).getIsSubmitted()) {
+        if (getEvaluationById(id).getIsSubmitted())
             throw new IllegalStateException("Evaluation is submitted, cannot be modified.");
-        }
 
-        if (!Objects.equals(id, evaluationDTO.getId())) {
+        if (!Objects.equals(id, evaluationDTO.getId()))
             throw new IllegalStateException("Reached evaluation ID and form ID are not the same!");
-        }
 
         evaluationDTO.setAssessment(evaluationDTO.getAssessment().toUpperCase());
         Evaluation grading = evaluationMapper.toEntity(evaluationDTO);
@@ -118,9 +116,8 @@ public class EvaluationService {
     }
 
     public List<EvaluationDTO> getTeamEvaluationByAssessment(String assessment, Long teamId) {
-        System.out.println("IN EVALUATION");
         List<Evaluation> evaluations =
-                evaluationRepository.getAllByAssessmentAndTeamId(assessment.toUpperCase(), teamId);
+            evaluationRepository.getAllByAssessmentAndTeamId(assessment.toUpperCase(), teamId);
         return evaluationMapper.toDTOList(evaluations);
     }
 }

@@ -3,8 +3,7 @@ package com.fypgrading.evaluationservice.controller;
 import com.fypgrading.evaluationservice.entity.validationGroups.SubmitEvaluationValidationGroup;
 import com.fypgrading.evaluationservice.service.EvaluationService;
 import com.fypgrading.evaluationservice.service.dto.EvaluationDTO;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -12,26 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-@RefreshScope
+@AllArgsConstructor
 @RestController
 @RequestMapping("/api/evaluations")
 public class EvaluationController {
 
     private final EvaluationService evaluationService;
-    private final String buildVersion;
-
-    public EvaluationController(
-        EvaluationService evaluationService,
-        @Value("${build.version}") String buildVersion
-    ) {
-        this.evaluationService = evaluationService;
-        this.buildVersion = buildVersion;
-    }
-
-    @GetMapping("/build-version")
-    public ResponseEntity<String> getBuildVersion() {
-        return ResponseEntity.ok().body(buildVersion);
-    }
 
     @GetMapping("/")
     public ResponseEntity<List<EvaluationDTO>> getSubmittedEvaluations() {
@@ -43,10 +28,8 @@ public class EvaluationController {
     public ResponseEntity<EvaluationDTO> getEvaluationByReviewerIdAndTeamIdAndAssessment(
         @PathVariable String assessment, @PathVariable UUID reviewerId, @PathVariable Long teamId
     ) {
-        EvaluationDTO evaluation =
-                evaluationService.getEvaluationByReviewerIdAndTeamIdAndAssessment(
-                        reviewerId, teamId, assessment
-                );
+        EvaluationDTO evaluation = evaluationService.getEvaluationByReviewerIdAndTeamIdAndAssessment(
+            reviewerId, teamId, assessment);
         return ResponseEntity.ok().body(evaluation);
     }
 
