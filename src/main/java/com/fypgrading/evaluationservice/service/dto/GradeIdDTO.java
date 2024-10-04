@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GradeIDsDTO {
+public class GradeIdDTO {
 
     private Long teamId;
 

@@ -61,7 +61,7 @@ public class EvaluationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<EvaluationDTO> deleteEvaluation(@PathVariable String id) {
-        EvaluationDTO deletedEvaluation = evaluationService.deleteEvaluation(id);
-        return ResponseEntity.ok().body(deletedEvaluation);
+        evaluationService.deleteEvaluation(id);
+        return ResponseEntity.noContent().build();
     }
 }

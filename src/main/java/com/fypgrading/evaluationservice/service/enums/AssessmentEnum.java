@@ -10,9 +10,5 @@ public enum AssessmentEnum {
     PROGRESS_REPORT,
     ADVISOR_ASSESSMENT,
     FINAL_REPORT,
-    FINAL_PRESENTATION;
-
-    public Long getEnumId() {
-        return ordinal() + 1L;
-    }
+    FINAL_PRESENTATION
 }
