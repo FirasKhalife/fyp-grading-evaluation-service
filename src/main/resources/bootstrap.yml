@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: ${SPRING_APPLICATION_NAME}
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-server
+      name: ${SPRING_APPLICATION_NAME}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      default-zone: ${REGISTRY_SERVER_URL}
+    healthcheck:
+      enabled: true

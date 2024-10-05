@@ -1,19 +1,46 @@
+build:
+  version: ${BUILD_VERSION}
+
+info:
+  app:
+    name: ${SPRING_APPLICATION_NAME}
+    description: "FYP Grading project - Evaluation Microservice"
+    version: ${BUILD_VERSION}
+
+logging:
+  level:
+    root: INFO
+
+management:
+  metrics:
+    tags:
+      application: ${SPRING_APPLICATION_NAME}
+
+services:
+  admin-service-name: ${ADMIN_SERVICE_NAME}
+  rubric-service-name: ${RUBRIC_SERVICE_NAME}
+
 spring:
   data:
     mongodb:
-      uri: mongodb://admin:admin@localhost:27017/evaluation-db?authSource=admin&authMechanism=SCRAM-SHA-1
-  application:
-      name: evaluation-service
+      uri: ${DATABASE_URL}
 
-eureka:
-  client:
-    service-url:
-      default-zone: http://localhost:8761/eureka/
-    healthcheck:
-      enabled: true
-  instance:
-    lease-expiration-duration-in-seconds: 2
-    lease-renewal-interval-in-seconds: 1
+  # this will in fact not be used as the service will register with eureka
+  # and get its configuration from the config server dynamically in the bootstrap phase (bootstrap.yml)
+  config:
+    import: "optional:configserver:"
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_SERVER_URL}/protocol/openid-connect/certs
 
 server:
-  port: 8082
+  port: ${PORT}

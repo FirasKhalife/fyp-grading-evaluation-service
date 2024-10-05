@@ -10,22 +10,23 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "evaluation")
-public class Evaluation {
+public class Evaluation extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
 
     @NotNull
-    private Integer reviewerId;
+    private UUID reviewerId;
 
     @NotNull
-    private Integer teamId;
+    private Long teamId;
 
     @NotNull
     private String assessment;

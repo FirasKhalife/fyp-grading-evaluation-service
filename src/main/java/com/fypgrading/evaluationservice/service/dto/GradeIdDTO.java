@@ -4,13 +4,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RubricDTOList {
+public class GradeIdDTO {
 
-    private List<RubricDTO> rubrics;
+    private Long teamId;
 
+    private UUID reviewerId;
+
+    private String assessment;
+
+    private Float grade;
 }
