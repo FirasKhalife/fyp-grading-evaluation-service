@@ -1,46 +1,70 @@
-build:
-  version: ${BUILD_VERSION}
-
-info:
-  app:
-    name: ${SPRING_APPLICATION_NAME}
-    description: "FYP Grading project - Evaluation Microservice"
-    version: ${BUILD_VERSION}
-
-logging:
-  level:
-    root: INFO
-
-management:
-  metrics:
-    tags:
-      application: ${SPRING_APPLICATION_NAME}
-
-services:
-  admin-service-name: ${ADMIN_SERVICE_NAME}
-  rubric-service-name: ${RUBRIC_SERVICE_NAME}
-
 spring:
-  data:
-    mongodb:
-      uri: ${DATABASE_URL}
-
-  # this will in fact not be used as the service will register with eureka
-  # and get its configuration from the config server dynamically in the bootstrap phase (bootstrap.yml)
+  application:
+    name: evaluation-service
   config:
     import: "optional:configserver:"
-
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-server
+      fail-fast: false
+    stream:
+      bindings:
+        activity-out-0:
+          destination: assay.activity
+          producer:
+            required-groups: notification-service   # the queue exists before the consumer first starts
+  mongodb:
+    uri: ${DATABASE_URL:mongodb://admin:admin@localhost:27017/evaluation-db?authSource=admin}
+  data:
+    mongodb:
+      auto-index-creation: true
   rabbitmq:
-    host: ${RABBITMQ_HOST}
-    port: ${RABBITMQ_PORT}
-    username: ${RABBITMQ_USERNAME}
-    password: ${RABBITMQ_PASSWORD}
-
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
   security:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: ${AUTH_SERVER_URL}/protocol/openid-connect/certs
+          jwk-set-uri: ${AUTH_SERVER_URL:http://localhost:7080/realms/assay}/protocol/openid-connect/certs
+
+assay:
+  clients:
+    admin: http://${ADMIN_SERVICE_NAME:admin-service}
+    rubric: http://${RUBRIC_SERVICE_NAME:rubric-service}
 
 server:
-  port: ${PORT}
+  port: ${PORT:8080}
+  shutdown: graceful
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${REGISTRY_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+info:
+  app:
+    name: ${spring.application.name}
+    description: "Assay evaluation service: each reviewer's filled-in rubric"
+    version: ${BUILD_VERSION:dev}
