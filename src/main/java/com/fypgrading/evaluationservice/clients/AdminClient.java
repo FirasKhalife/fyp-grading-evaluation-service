@@ -4,6 +4,7 @@ import com.fypgrading.evaluationservice.evaluation.Assessment;
 import com.fypgrading.evaluationservice.evaluation.ReviewerRole;
 import java.time.Instant;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -14,7 +15,7 @@ public class AdminClient {
 
     private final RestClient http;
 
-    public AdminClient(RestClient.Builder loadBalanced, @Value("${assay.clients.admin:http://admin-service}") String base) {
+    public AdminClient(@Qualifier(ClientConfig.LOAD_BALANCED) RestClient.Builder loadBalanced, @Value("${assay.clients.admin:http://admin-service}") String base) {
         this.http = loadBalanced.baseUrl(base).build();
     }
 

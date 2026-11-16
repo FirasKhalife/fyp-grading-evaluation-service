@@ -32,8 +32,8 @@ public final class EvaluationDtos {
     public record EvaluationView(String id, String teamId, String teamName, Assessment assessment,
                                  PersonView reviewer, ReviewerRole reviewerRole, EvaluationStatus status,
                                  List<CriterionView> criteria, String overallComment, Double score, int scoredCount,
-                                 int criteriaCount, Instant dueAt, boolean overdue, Instant createdAt,
-                                 Instant updatedAt, Instant submittedAt) {
+                                 int criteriaCount, Instant dueAt, boolean overdue, boolean submittedLate,
+                                 Instant createdAt, Instant updatedAt, Instant submittedAt) {
     }
 
     public record DraftBody(@NotNull @Size(max = 30) List<@Valid @NotNull CriterionInput> criteria,

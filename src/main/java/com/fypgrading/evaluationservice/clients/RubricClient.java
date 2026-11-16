@@ -3,6 +3,7 @@ package com.fypgrading.evaluationservice.clients;
 import com.fypgrading.evaluationservice.evaluation.Assessment;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -13,7 +14,7 @@ public class RubricClient {
 
     private final RestClient http;
 
-    public RubricClient(RestClient.Builder loadBalanced,
+    public RubricClient(@Qualifier(ClientConfig.LOAD_BALANCED) RestClient.Builder loadBalanced,
             @Value("${assay.clients.rubric:http://rubric-service}") String base) {
         this.http = loadBalanced.baseUrl(base).build();
     }

@@ -4,9 +4,11 @@ import com.fypgrading.evaluationservice.common.demo.DemoSession;
 import com.fypgrading.evaluationservice.common.security.CurrentUser;
 import java.net.http.HttpClient;
 import java.time.Duration;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -19,8 +21,18 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class ClientConfig {
 
+    public static final String LOAD_BALANCED = "loadBalanced";
+
+    /** The default builder stays plain: Eureka's own client uses it to reach the registry. */
+    @Bean
+    @Primary
+    RestClient.Builder restClientBuilder() {
+        return RestClient.builder();
+    }
+
     @Bean
     @LoadBalanced
+    @Qualifier(LOAD_BALANCED)
     RestClient.Builder loadBalancedRestClientBuilder() {
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(
                 HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build());

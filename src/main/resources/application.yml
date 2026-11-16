@@ -2,12 +2,10 @@ spring:
   application:
     name: evaluation-service
   config:
-    import: "optional:configserver:"
+    # Shared settings from config-server (fyp-grading-config). Optional: this file is complete on its own.
+    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8071}/config"
   cloud:
     config:
-      discovery:
-        enabled: true
-        service-id: config-server
       fail-fast: false
     stream:
       bindings:
@@ -15,6 +13,10 @@ spring:
           destination: assay.activity
           producer:
             required-groups: notification-service   # the queue exists before the consumer first starts
+      rabbit:
+        default:
+          producer:
+            auto-bind-dlq: true   # same queue arguments as the consumer declares (a <queue>.dlq per queue)
   mongodb:
     uri: ${DATABASE_URL:mongodb://admin:admin@localhost:27017/evaluation-db?authSource=admin}
   data:
@@ -42,6 +44,9 @@ server:
 
 eureka:
   client:
+    # Register and refresh quickly: the services start together and find each other (and the config server) by name.
+    initial-instance-info-replication-interval-seconds: 2
+    registry-fetch-interval-seconds: 5
     service-url:
       defaultZone: ${REGISTRY_SERVER_URL:http://localhost:8761/eureka/}
   instance:
@@ -68,3 +73,7 @@ info:
     name: ${spring.application.name}
     description: "Assay evaluation service: each reviewer's filled-in rubric"
     version: ${BUILD_VERSION:dev}
+
+springdoc:
+  # Service-to-service endpoints aren't part of the public API (the gateway doesn't route them).
+  paths-to-exclude: /internal/**

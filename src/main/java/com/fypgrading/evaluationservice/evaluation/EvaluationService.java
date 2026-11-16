@@ -297,7 +297,7 @@ public class EvaluationService {
         return new EvaluationView(null, assignment.teamId(), assignment.teamName(), assignment.assessment(),
                 PersonView.of(r.id(), r.firstName(), r.lastName()), assignment.requiredRole(),
                 EvaluationStatus.NOT_STARTED, criteria, null, null, 0, criteria.size(), assignment.dueAt(),
-                isOverdue(assignment.dueAt(), null), null, null, null);
+                isOverdue(assignment.dueAt(), null), false, null, null, null);
     }
 
     private EvaluationView view(Evaluation e, Instant dueAt) {
@@ -309,12 +309,17 @@ public class EvaluationService {
         Double score = e.scoredCount() == 0 ? null : Scoring.display(e.score());
         return new EvaluationView(e.getId(), e.getTeamId(), e.getTeamName(), e.getAssessment(), reviewer(e),
                 e.getReviewerRole(), e.getStatus(), criteria, e.getOverallComment(), score, e.scoredCount(),
-                criteria.size(), dueAt, isOverdue(dueAt, e.getSubmittedAt()), e.getCreatedAt(), e.getUpdatedAt(),
-                e.getSubmittedAt());
+                criteria.size(), dueAt, isOverdue(dueAt, e.getSubmittedAt()), isLate(dueAt, e.getSubmittedAt()),
+                e.getCreatedAt(), e.getUpdatedAt(), e.getSubmittedAt());
     }
 
     private boolean isOverdue(Instant dueAt, Instant submittedAt) {
         return dueAt != null && submittedAt == null && clock.instant().isAfter(dueAt);
+    }
+
+    /** Late submissions are allowed and stay marked: submitted after the due date. */
+    private static boolean isLate(Instant dueAt, Instant submittedAt) {
+        return dueAt != null && submittedAt != null && submittedAt.isAfter(dueAt);
     }
 
     private static PersonView reviewer(Evaluation e) {
