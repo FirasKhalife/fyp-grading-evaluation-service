@@ -7,6 +7,5 @@ public final class Roles {
     public static final String REVIEWER = "REVIEWER";
     public static final String STUDENT = "STUDENT";
 
-    private Roles() {
-    }
+    private Roles() {}
 }

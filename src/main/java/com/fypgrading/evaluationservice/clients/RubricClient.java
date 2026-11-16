@@ -14,21 +14,22 @@ public class RubricClient {
 
     private final RestClient http;
 
-    public RubricClient(@Qualifier(ClientConfig.LOAD_BALANCED) RestClient.Builder loadBalanced,
+    public RubricClient(
+            @Qualifier(ClientConfig.LOAD_BALANCED) RestClient.Builder loadBalanced,
             @Value("${assay.clients.rubric:http://rubric-service}") String base) {
         this.http = loadBalanced.baseUrl(base).build();
     }
 
     public Rubric rubric(Assessment assessment) {
-        return Remote.call("rubric service", () -> http.get()
-                .uri("/api/rubrics/{assessment}", assessment)
-                .retrieve()
-                .body(Rubric.class));
+        return Remote.call(
+                "rubric service",
+                () -> http.get()
+                        .uri("/api/rubrics/{assessment}", assessment)
+                        .retrieve()
+                        .body(Rubric.class));
     }
 
-    public record Rubric(Assessment assessment, String name, List<Criterion> criteria) {
-    }
+    public record Rubric(Assessment assessment, String name, List<Criterion> criteria) {}
 
-    public record Criterion(String id, int position, String name, int weight, Map<String, String> descriptions) {
-    }
+    public record Criterion(String id, int position, String name, int weight, Map<String, String> descriptions) {}
 }

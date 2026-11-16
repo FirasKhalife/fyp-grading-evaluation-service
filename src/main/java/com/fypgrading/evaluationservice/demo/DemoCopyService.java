@@ -50,7 +50,8 @@ public class DemoCopyService {
     public void replace(UUID session) {
         SeedClock at = SeedClock.startingNow(clock);
         evaluations.deleteByDemoSession(session.toString());
-        List<Evaluation> copy = seed.evaluations().stream().map(e -> toDocument(session, at, e)).toList();
+        List<Evaluation> copy =
+                seed.evaluations().stream().map(e -> toDocument(session, at, e)).toList();
         evaluations.insert(copy);
     }
 
@@ -67,35 +68,74 @@ public class DemoCopyService {
     private static Evaluation toDocument(UUID session, SeedClock at, SeedEvaluation e) {
         String[] name = e.reviewerName().split(" ", 2);
         List<CriterionScore> criteria = e.criteria().stream()
-                .map(c -> new CriterionScore(SeedIds.of(session, c.criterionKey()).toString(), c.position(), c.name(),
-                        c.weight(), c.descriptions(), c.level(), c.comment()))
+                .map(c -> new CriterionScore(
+                        SeedIds.of(session, c.criterionKey()).toString(),
+                        c.position(),
+                        c.name(),
+                        c.weight(),
+                        c.descriptions(),
+                        c.level(),
+                        c.comment()))
                 .toList();
         List<HistoryEntry> history = e.history().stream()
-                .map(h -> new HistoryEntry(at.resolve(h.at()), h.kind(),
-                        h.criterionKey() == null ? null : SeedIds.of(session, h.criterionKey()).toString(),
-                        null, h.from(), h.to()))
+                .map(h -> new HistoryEntry(
+                        at.resolve(h.at()),
+                        h.kind(),
+                        h.criterionKey() == null
+                                ? null
+                                : SeedIds.of(session, h.criterionKey()).toString(),
+                        null,
+                        h.from(),
+                        h.to()))
                 .toList();
-        Evaluation document = new Evaluation(SeedIds.of(session, e.key()).toString(), session.toString(),
-                SeedIds.of(session, e.teamKey()).toString(), e.teamName(), e.assessment(), e.reviewerId(), name[0],
-                name.length > 1 ? name[1] : "", e.reviewerRole(), criteria, at.resolve(e.createdAt()));
-        EvaluationSeeding.restore(document, e.status(), e.overallComment(), at.resolve(e.updatedAt()),
-                at.resolve(e.submittedAt()), history);
+        Evaluation document = new Evaluation(
+                SeedIds.of(session, e.key()).toString(),
+                session.toString(),
+                SeedIds.of(session, e.teamKey()).toString(),
+                e.teamName(),
+                e.assessment(),
+                e.reviewerId(),
+                name[0],
+                name.length > 1 ? name[1] : "",
+                e.reviewerRole(),
+                criteria,
+                at.resolve(e.createdAt()));
+        EvaluationSeeding.restore(
+                document,
+                e.status(),
+                e.overallComment(),
+                at.resolve(e.updatedAt()),
+                at.resolve(e.submittedAt()),
+                history);
         return document;
     }
 
-    record Seed(List<SeedEvaluation> evaluations) {
-    }
+    record Seed(List<SeedEvaluation> evaluations) {}
 
-    record SeedEvaluation(String key, String teamKey, String teamName, Assessment assessment, String reviewerId,
-                          String reviewerName, ReviewerRole reviewerRole, EvaluationStatus status,
-                          List<SeedCriterion> criteria, String overallComment, String createdAt, String updatedAt,
-                          String submittedAt, List<SeedHistory> history) {
-    }
+    record SeedEvaluation(
+            String key,
+            String teamKey,
+            String teamName,
+            Assessment assessment,
+            String reviewerId,
+            String reviewerName,
+            ReviewerRole reviewerRole,
+            EvaluationStatus status,
+            List<SeedCriterion> criteria,
+            String overallComment,
+            String createdAt,
+            String updatedAt,
+            String submittedAt,
+            List<SeedHistory> history) {}
 
-    record SeedCriterion(String criterionKey, int position, String name, int weight, Map<String, String> descriptions,
-                         Integer level, String comment) {
-    }
+    record SeedCriterion(
+            String criterionKey,
+            int position,
+            String name,
+            int weight,
+            Map<String, String> descriptions,
+            Integer level,
+            String comment) {}
 
-    record SeedHistory(String at, HistoryKind kind, String criterionKey, Integer from, Integer to) {
-    }
+    record SeedHistory(String at, HistoryKind kind, String criterionKey, Integer from, Integer to) {}
 }

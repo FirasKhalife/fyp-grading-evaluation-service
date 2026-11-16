@@ -20,8 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** HTTP entry points. Kept thin: the rules live in {@link EvaluationService}. */
 public final class EvaluationControllers {
 
-    private EvaluationControllers() {
-    }
+    private EvaluationControllers() {}
 
     /** P4: the signed-in reviewer's own evaluation. */
     @RestController
@@ -41,13 +40,15 @@ public final class EvaluationControllers {
         }
 
         @PutMapping
-        public EvaluationView saveDraft(@PathVariable UUID teamId, @PathVariable Assessment assessment,
-                @Valid @RequestBody DraftBody body) {
+        public EvaluationView saveDraft(
+                @PathVariable UUID teamId, @PathVariable Assessment assessment, @Valid @RequestBody DraftBody body) {
             return service.saveDraft(teamId.toString(), assessment, body);
         }
 
         @PostMapping("/submit")
-        public EvaluationView submit(@PathVariable UUID teamId, @PathVariable Assessment assessment,
+        public EvaluationView submit(
+                @PathVariable UUID teamId,
+                @PathVariable Assessment assessment,
                 @Valid @RequestBody(required = false) DraftBody body) {
             return service.submit(teamId.toString(), assessment, body);
         }

@@ -24,10 +24,24 @@ public class ActivityPublisher {
         this.bridge = bridge;
     }
 
-    public void publish(UUID session, String kind, String actorId, String actorName, String text, Instant at,
-            String teamId, Assessment assessment) {
-        ActivityEvent event = new ActivityEvent(UUID.randomUUID().toString(), session.toString(), kind, actorId,
-                actorName, text, at, new Link("TEAM", teamId, assessment));
+    public void publish(
+            UUID session,
+            String kind,
+            String actorId,
+            String actorName,
+            String text,
+            Instant at,
+            String teamId,
+            Assessment assessment) {
+        ActivityEvent event = new ActivityEvent(
+                UUID.randomUUID().toString(),
+                session.toString(),
+                kind,
+                actorId,
+                actorName,
+                text,
+                at,
+                new Link("TEAM", teamId, assessment));
         try {
             if (!bridge.send(BINDING, event)) {
                 log.warn("Activity event {} was not accepted by the binder", event.eventId());
@@ -37,10 +51,15 @@ public class ActivityPublisher {
         }
     }
 
-    public record ActivityEvent(String eventId, String demoSession, String kind, String actorId, String actorName,
-                                String text, Instant at, Link link) {
-    }
+    public record ActivityEvent(
+            String eventId,
+            String demoSession,
+            String kind,
+            String actorId,
+            String actorName,
+            String text,
+            Instant at,
+            Link link) {}
 
-    public record Link(String kind, String teamId, Assessment assessment) {
-    }
+    public record Link(String kind, String teamId, Assessment assessment) {}
 }

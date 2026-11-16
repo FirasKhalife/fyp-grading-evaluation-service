@@ -12,8 +12,7 @@ public final class Scoring {
 
     public static final int MAX_LEVEL = 4;
 
-    private Scoring() {
-    }
+    private Scoring() {}
 
     public static double score(Collection<Evaluation.CriterionScore> criteria) {
         int sum = 0;

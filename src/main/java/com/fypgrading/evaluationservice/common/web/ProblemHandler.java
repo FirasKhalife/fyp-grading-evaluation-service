@@ -44,7 +44,9 @@ public class ProblemHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ResponseEntity<ProblemDetail> typeMismatch(MethodArgumentTypeMismatchException ex) {
-        ProblemDetail problem = ProblemWriter.problem(HttpStatus.BAD_REQUEST, "validation-failed",
+        ProblemDetail problem = ProblemWriter.problem(
+                HttpStatus.BAD_REQUEST,
+                "validation-failed",
                 "'" + ex.getValue() + "' is not a valid " + ex.getName() + ".");
         problem.setProperty("errors", List.of(new ApiException.FieldProblem(ex.getName(), "invalid value")));
         return ResponseEntity.badRequest().body(problem);
@@ -53,42 +55,46 @@ public class ProblemHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(Exception.class)
     ResponseEntity<ProblemDetail> unexpected(Exception ex) {
         log.error("Unhandled error", ex);
-        return ResponseEntity.internalServerError().body(ProblemWriter.problem(HttpStatus.INTERNAL_SERVER_ERROR,
-                "internal-error", "Something went wrong on our side. Try again in a moment."));
+        return ResponseEntity.internalServerError()
+                .body(ProblemWriter.problem(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "internal-error",
+                        "Something went wrong on our side. Try again in a moment."));
     }
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         List<ApiException.FieldProblem> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(ProblemHandler::toProblem)
                 .toList();
-        ProblemDetail problem = ProblemWriter.problem(HttpStatus.BAD_REQUEST, "validation-failed",
-                "Some fields are missing or invalid.");
+        ProblemDetail problem = ProblemWriter.problem(
+                HttpStatus.BAD_REQUEST, "validation-failed", "Some fields are missing or invalid.");
         problem.setProperty("errors", errors);
         return ResponseEntity.badRequest().body(problem);
     }
 
     @Override
-    protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException ex,
-            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleHandlerMethodValidationException(
+            HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         List<ApiException.FieldProblem> errors = ex.getParameterValidationResults().stream()
                 .flatMap(r -> r.getResolvableErrors().stream()
                         .map(e -> new ApiException.FieldProblem(
                                 String.valueOf(r.getMethodParameter().getParameterName()),
                                 String.valueOf(e.getDefaultMessage()))))
                 .toList();
-        ProblemDetail problem = ProblemWriter.problem(HttpStatus.BAD_REQUEST, "validation-failed",
-                "Some parameters are invalid.");
+        ProblemDetail problem =
+                ProblemWriter.problem(HttpStatus.BAD_REQUEST, "validation-failed", "Some parameters are invalid.");
         problem.setProperty("errors", errors);
         return ResponseEntity.badRequest().body(problem);
     }
 
     @Override
-    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
-            HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
+    protected ResponseEntity<Object> handleExceptionInternal(
+            Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
         ResponseEntity<Object> response = super.handleExceptionInternal(ex, body, headers, statusCode, request);
-        if (response != null && response.getBody() instanceof ProblemDetail problem
+        if (response != null
+                && response.getBody() instanceof ProblemDetail problem
                 && (problem.getProperties() == null || !problem.getProperties().containsKey("code"))) {
             String code = switch (statusCode.value()) {
                 case 400 -> "bad-request";

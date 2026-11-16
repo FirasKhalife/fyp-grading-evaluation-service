@@ -1,0 +1,36 @@
+{
+  "id": "7a1c2f3e-5b6d-4e8f-9a0b-1c2d3e4f5a6b",
+  "teamId": "6c3fc94c-3b70-3a35-9a0c-9dcc8f62264a",
+  "teamName": "Alpha",
+  "assessment": "FINAL_PRESENTATION",
+  "reviewer": {
+    "id": "00000000-0000-4000-a000-000000000002",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "displayName": "Jane Smith",
+    "initials": "JS"
+  },
+  "reviewerRole": "JURY",
+  "status": "SUBMITTED",
+  "criteria": [
+    {
+      "criterionId": "1b2c3d4e-5f60-4a7b-8c9d-0e1f2a3b4c5d",
+      "position": 1,
+      "name": "Project objectives / Outcomes",
+      "weight": 10,
+      "descriptions": {"4": "All objectives.", "3": "Main objectives.", "2": "Some objectives.", "1": "No objectives."},
+      "level": 4,
+      "comment": "Clear objectives."
+    }
+  ],
+  "overallComment": "A confident defense.",
+  "score": 87.5,
+  "scoredCount": 10,
+  "criteriaCount": 10,
+  "dueAt": "2026-06-12T21:59:00Z",
+  "overdue": false,
+  "submittedLate": false,
+  "createdAt": "2026-06-09T09:00:00Z",
+  "updatedAt": "2026-06-09T11:40:00Z",
+  "submittedAt": "2026-06-09T11:40:00Z"
+}

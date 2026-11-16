@@ -9,13 +9,13 @@ public interface EvaluationRepository extends MongoRepository<Evaluation, String
 
     Optional<Evaluation> findByDemoSessionAndId(String demoSession, String id);
 
-    Optional<Evaluation> findByDemoSessionAndTeamIdAndAssessmentAndReviewerId(String demoSession, String teamId,
-            Assessment assessment, String reviewerId);
+    Optional<Evaluation> findByDemoSessionAndTeamIdAndAssessmentAndReviewerId(
+            String demoSession, String teamId, Assessment assessment, String reviewerId);
 
     List<Evaluation> findByDemoSessionAndTeamIdAndAssessment(String demoSession, String teamId, Assessment assessment);
 
-    List<Evaluation> findByDemoSessionAndTeamIdAndAssessmentAndStatus(String demoSession, String teamId,
-            Assessment assessment, EvaluationStatus status);
+    List<Evaluation> findByDemoSessionAndTeamIdAndAssessmentAndStatus(
+            String demoSession, String teamId, Assessment assessment, EvaluationStatus status);
 
     List<Evaluation> findByDemoSession(String demoSession);
 

@@ -12,8 +12,7 @@ public final class ProblemWriter {
 
     public static final String TYPE_BASE = "https://assay.dev/problems/";
 
-    private ProblemWriter() {
-    }
+    private ProblemWriter() {}
 
     public static ProblemDetail problem(HttpStatus status, String code, String detail) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
@@ -22,14 +21,16 @@ public final class ProblemWriter {
         return problem;
     }
 
-    public static void write(HttpServletResponse response, HttpStatus status, String code, String detail,
-            String instance) throws IOException {
+    public static void write(
+            HttpServletResponse response, HttpStatus status, String code, String detail, String instance)
+            throws IOException {
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("{\"type\":\"" + TYPE_BASE + code + "\",\"title\":\"" + status.getReasonPhrase()
-                + "\",\"status\":" + status.value() + ",\"detail\":\"" + escape(detail) + "\",\"instance\":\""
-                + escape(instance) + "\",\"code\":\"" + code + "\"}");
+        response.getWriter()
+                .write("{\"type\":\"" + TYPE_BASE + code + "\",\"title\":\"" + status.getReasonPhrase()
+                        + "\",\"status\":" + status.value() + ",\"detail\":\"" + escape(detail) + "\",\"instance\":\""
+                        + escape(instance) + "\",\"code\":\"" + code + "\"}");
     }
 
     private static String escape(String value) {

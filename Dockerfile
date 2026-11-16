@@ -4,7 +4,7 @@ WORKDIR /app
 COPY pom.xml .
 RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp -q dependency:go-offline || true
 COPY src src
-RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp -q package -DskipTests \
+RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp -q package -DskipTests -Dspotless.check.skip=true -Dcheckstyle.skip=true \
  && java -Djarmode=tools -jar target/app.jar extract --layers --launcher --destination target/extracted
 
 FROM eclipse-temurin:25-jre

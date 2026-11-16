@@ -34,7 +34,8 @@ public class DemoSessionFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI().substring(request.getContextPath().length());
         return !(path.startsWith("/api/") || path.startsWith("/internal/"))
-                || path.startsWith("/internal/demo-sessions/") || publicPaths.stream().anyMatch(p -> matcher.match(p, path));
+                || path.startsWith("/internal/demo-sessions/")
+                || publicPaths.stream().anyMatch(p -> matcher.match(p, path));
     }
 
     @Override
@@ -47,8 +48,12 @@ public class DemoSessionFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         Optional<UUID> session = DemoSession.parse(request.getHeader(DemoSession.HEADER));
         if (session.isEmpty()) {
-            ProblemWriter.write(response, HttpStatus.BAD_REQUEST, "demo-session-required",
-                    "Every request needs an X-Demo-Session header holding a random UUID.", request.getRequestURI());
+            ProblemWriter.write(
+                    response,
+                    HttpStatus.BAD_REQUEST,
+                    "demo-session-required",
+                    "Every request needs an X-Demo-Session header holding a random UUID.",
+                    request.getRequestURI());
             return;
         }
         try (DemoSession.Binding ignored = DemoSession.bind(session.get())) {

@@ -26,7 +26,8 @@ public record CurrentUser(UUID id, String displayName, Jwt jwt, Authentication a
     }
 
     public boolean hasRole(String role) {
-        return authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
     }
 
     public boolean isAdmin() {

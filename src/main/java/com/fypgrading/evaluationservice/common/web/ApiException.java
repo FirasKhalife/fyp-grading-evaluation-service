@@ -72,6 +72,5 @@ public class ApiException extends RuntimeException {
         return properties;
     }
 
-    public record FieldProblem(String field, String message) {
-    }
+    public record FieldProblem(String field, String message) {}
 }

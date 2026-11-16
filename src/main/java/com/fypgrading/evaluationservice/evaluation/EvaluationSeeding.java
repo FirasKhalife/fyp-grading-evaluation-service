@@ -6,11 +6,15 @@ import java.util.List;
 /** The one way to set a seeded evaluation's state directly (status, dates, history) when copying the seed. */
 public final class EvaluationSeeding {
 
-    private EvaluationSeeding() {
-    }
+    private EvaluationSeeding() {}
 
-    public static void restore(Evaluation evaluation, EvaluationStatus status, String overallComment,
-            Instant updatedAt, Instant submittedAt, List<Evaluation.HistoryEntry> history) {
+    public static void restore(
+            Evaluation evaluation,
+            EvaluationStatus status,
+            String overallComment,
+            Instant updatedAt,
+            Instant submittedAt,
+            List<Evaluation.HistoryEntry> history) {
         evaluation.restore(status, overallComment, updatedAt, submittedAt, history);
     }
 }

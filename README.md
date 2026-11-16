@@ -78,3 +78,13 @@ It needs MongoDB, RabbitMQ and Keycloak, plus admin-service and rubric-service t
 - Actuator exposes only health, info and prometheus, and the gateway doesn't route it.
 - The shared API contract lives in the workspace (`contract/openapi.yaml`). This service publishes its own part
   at `/v3/api-docs`.
+
+## Lint and CI
+
+- **Formatting:** Spotless with palantir-java-format. `./mvnw spotless:apply` fixes it.
+- **Lint:** Checkstyle (`checkstyle.xml`) catches likely bugs and sloppy code.
+- The build checks both in the `validate` phase, so `./mvnw verify` runs the lint, the build and every test.
+- **GitHub Actions** (`.github/workflows/ci.yml`) runs on every pull request and on pushes to `master`:
+  - the lint
+  - `verify`, including the Testcontainers tests
+  - a build of the Docker image

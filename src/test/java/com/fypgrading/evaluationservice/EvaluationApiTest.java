@@ -97,14 +97,26 @@ class EvaluationApiTest {
     @BeforeEach
     void stubs() {
         output.clear();
-        when(admin.assignment(eq(TEAM), eq(Assessment.PROPOSAL_PRESENTATION), any())).thenReturn(new Assignment(TEAM,
-                "Beta", Assessment.PROPOSAL_PRESENTATION, ReviewerRole.JURY, true,
-                new AdminClient.Person(JANE.toString(), "Jane", "Smith"), Instant.now().plusSeconds(86400), false, 0, 3));
-        when(rubrics.rubric(Assessment.PROPOSAL_PRESENTATION)).thenReturn(new RubricClient.Rubric(
-                Assessment.PROPOSAL_PRESENTATION, "Proposal presentation", List.of(
-                new RubricClient.Criterion("c1", 1, "Objectives", 20, Map.of("4", "a")),
-                new RubricClient.Criterion("c2", 2, "Requirements", 40, Map.of("4", "a")),
-                new RubricClient.Criterion("c3", 3, "Slides", 40, Map.of("4", "a")))));
+        when(admin.assignment(eq(TEAM), eq(Assessment.PROPOSAL_PRESENTATION), any()))
+                .thenReturn(new Assignment(
+                        TEAM,
+                        "Beta",
+                        Assessment.PROPOSAL_PRESENTATION,
+                        ReviewerRole.JURY,
+                        true,
+                        new AdminClient.Person(JANE.toString(), "Jane", "Smith"),
+                        Instant.now().plusSeconds(86400),
+                        false,
+                        0,
+                        3));
+        when(rubrics.rubric(Assessment.PROPOSAL_PRESENTATION))
+                .thenReturn(new RubricClient.Rubric(
+                        Assessment.PROPOSAL_PRESENTATION,
+                        "Proposal presentation",
+                        List.of(
+                                new RubricClient.Criterion("c1", 1, "Objectives", 20, Map.of("4", "a")),
+                                new RubricClient.Criterion("c2", 2, "Requirements", 40, Map.of("4", "a")),
+                                new RubricClient.Criterion("c3", 3, "Slides", 40, Map.of("4", "a")))));
         when(admin.submitGrade(any())).thenReturn(new GradeReceipt(1, 3));
     }
 
@@ -123,8 +135,11 @@ class EvaluationApiTest {
                 .andExpect(jsonPath("$.status").value("NOT_STARTED"))
                 .andExpect(jsonPath("$.criteriaCount").value(3));
 
-        mvc.perform(put(PATH).header("X-Demo-Session", session).with(jane())
-                        .contentType(MediaType.APPLICATION_JSON).content(form(4, 3, null)))
+        mvc.perform(put(PATH)
+                        .header("X-Demo-Session", session)
+                        .with(jane())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(form(4, 3, null)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DRAFT"))
                 .andExpect(jsonPath("$.scoredCount").value(2))
@@ -135,8 +150,11 @@ class EvaluationApiTest {
                 .andExpect(jsonPath("$.code").value("criteria-unscored"))
                 .andExpect(jsonPath("$.errors[0].field").value("criteria[c3].level"));
 
-        mvc.perform(post(PATH + "/submit").header("X-Demo-Session", session).with(jane())
-                        .contentType(MediaType.APPLICATION_JSON).content(form(4, 3, 2)))
+        mvc.perform(post(PATH + "/submit")
+                        .header("X-Demo-Session", session)
+                        .with(jane())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(form(4, 3, 2)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUBMITTED"))
                 .andExpect(jsonPath("$.score").value(70.0));
@@ -151,42 +169,66 @@ class EvaluationApiTest {
                 .andExpect(status().isOk());
         verify(admin, times(1)).submitGrade(any());
 
-        mvc.perform(put(PATH).header("X-Demo-Session", session).with(jane())
-                        .contentType(MediaType.APPLICATION_JSON).content(form(1, 1, 1)))
+        mvc.perform(put(PATH)
+                        .header("X-Demo-Session", session)
+                        .with(jane())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(form(1, 1, 1)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("evaluation-submitted"));
     }
 
     @Test
     void changingALevelIsRecordedAndAnnouncedToTheActivityFeed() throws Exception {
-        mvc.perform(put(PATH).header("X-Demo-Session", session).with(jane())
-                .contentType(MediaType.APPLICATION_JSON).content(form(2, null, null))).andExpect(status().isOk());
+        mvc.perform(put(PATH)
+                        .header("X-Demo-Session", session)
+                        .with(jane())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(form(2, null, null)))
+                .andExpect(status().isOk());
         Message<byte[]> created = output.receive(2000, "assay.activity");
         assertThat(new String(created.getPayload(), StandardCharsets.UTF_8)).contains("DRAFT_SAVED");
 
-        mvc.perform(put(PATH).header("X-Demo-Session", session).with(jane())
-                .contentType(MediaType.APPLICATION_JSON).content(form(3, null, null))).andExpect(status().isOk());
+        mvc.perform(put(PATH)
+                        .header("X-Demo-Session", session)
+                        .with(jane())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(form(3, null, null)))
+                .andExpect(status().isOk());
         Message<byte[]> changed = output.receive(2000, "assay.activity");
         assertThat(new String(changed.getPayload(), StandardCharsets.UTF_8))
                 .contains("LEVEL_CHANGED")
                 .contains("changed Objectives 2 → 3 in the proposal presentation draft for Team Beta.");
 
         String id = evaluations.findByDemoSession(session.toString()).getFirst().getId();
-        mvc.perform(get("/api/evaluations/" + id + "/history").header("X-Demo-Session", session).with(coordinator()))
+        mvc.perform(get("/api/evaluations/" + id + "/history")
+                        .header("X-Demo-Session", session)
+                        .with(coordinator()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].kind").value("LEVEL_CHANGED"))
                 .andExpect(jsonPath("$[0].from").value(2))
                 .andExpect(jsonPath("$[0].to").value(3))
                 .andExpect(jsonPath("$[0].criterionName").value("Objectives"));
-        mvc.perform(get("/api/evaluations/" + id + "/history").header("X-Demo-Session", session).with(jane()))
+        mvc.perform(get("/api/evaluations/" + id + "/history")
+                        .header("X-Demo-Session", session)
+                        .with(jane()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void aReviewerWithoutTheRoleOnTheTeamCantGrade() throws Exception {
-        when(admin.assignment(eq(TEAM), eq(Assessment.PROPOSAL_PRESENTATION), any())).thenReturn(new Assignment(TEAM,
-                "Beta", Assessment.PROPOSAL_PRESENTATION, ReviewerRole.JURY, false,
-                new AdminClient.Person(JANE.toString(), "Jane", "Smith"), null, false, 0, 3));
+        when(admin.assignment(eq(TEAM), eq(Assessment.PROPOSAL_PRESENTATION), any()))
+                .thenReturn(new Assignment(
+                        TEAM,
+                        "Beta",
+                        Assessment.PROPOSAL_PRESENTATION,
+                        ReviewerRole.JURY,
+                        false,
+                        new AdminClient.Person(JANE.toString(), "Jane", "Smith"),
+                        null,
+                        false,
+                        0,
+                        3));
         mvc.perform(get(PATH).header("X-Demo-Session", session).with(jane()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("not-assigned"));
@@ -197,8 +239,11 @@ class EvaluationApiTest {
     @Test
     void ifAdminServiceIsDownTheEvaluationStaysAnEditableDraft() throws Exception {
         when(admin.submitGrade(any())).thenThrow(ApiException.unavailable("down"));
-        mvc.perform(post(PATH + "/submit").header("X-Demo-Session", session).with(jane())
-                        .contentType(MediaType.APPLICATION_JSON).content(form(4, 4, 4)))
+        mvc.perform(post(PATH + "/submit")
+                        .header("X-Demo-Session", session)
+                        .with(jane())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(form(4, 4, 4)))
                 .andExpect(status().isServiceUnavailable());
         mvc.perform(get(PATH).header("X-Demo-Session", session).with(jane()))
                 .andExpect(jsonPath("$.status").value("DRAFT"));

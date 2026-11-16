@@ -12,8 +12,11 @@ import org.springframework.security.oauth2.jwt.Jwt;
 class RealmRolesTest {
 
     private static Jwt token(Map<String, Object> claims) {
-        Jwt.Builder builder = Jwt.withTokenValue("t").header("alg", "none").subject("s")
-                .issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(60));
+        Jwt.Builder builder = Jwt.withTokenValue("t")
+                .header("alg", "none")
+                .subject("s")
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(60));
         claims.forEach(builder::claim);
         return builder.build();
     }

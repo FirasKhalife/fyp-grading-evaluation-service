@@ -14,7 +14,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * taken when the draft was created, so later rubric edits never change it. Once submitted it's locked.
  */
 @Document("evaluations")
-@CompoundIndex(name = "one_per_reviewer", unique = true,
+@CompoundIndex(
+        name = "one_per_reviewer",
+        unique = true,
         def = "{'demoSession': 1, 'teamId': 1, 'assessment': 1, 'reviewerId': 1}")
 public class Evaluation {
 
@@ -40,12 +42,20 @@ public class Evaluation {
     private Instant submittedAt;
     private List<HistoryEntry> history = new ArrayList<>();
 
-    protected Evaluation() {
-    }
+    protected Evaluation() {}
 
-    public Evaluation(String id, String demoSession, String teamId, String teamName, Assessment assessment,
-            String reviewerId, String reviewerFirstName, String reviewerLastName, ReviewerRole reviewerRole,
-            List<CriterionScore> criteria, Instant createdAt) {
+    public Evaluation(
+            String id,
+            String demoSession,
+            String teamId,
+            String teamName,
+            Assessment assessment,
+            String reviewerId,
+            String reviewerFirstName,
+            String reviewerLastName,
+            ReviewerRole reviewerRole,
+            List<CriterionScore> criteria,
+            Instant createdAt) {
         this.id = id;
         this.demoSession = demoSession;
         this.teamId = teamId;
@@ -92,7 +102,11 @@ public class Evaluation {
     }
 
     /** Only for seeding a visitor's copy. */
-    void restore(EvaluationStatus status, String overallComment, Instant updatedAt, Instant submittedAt,
+    void restore(
+            EvaluationStatus status,
+            String overallComment,
+            Instant updatedAt,
+            Instant submittedAt,
             List<HistoryEntry> history) {
         this.status = status;
         this.overallComment = overallComment;
@@ -170,8 +184,14 @@ public class Evaluation {
     }
 
     /** A criterion as it was in the rubric when the draft started, plus the reviewer's level and comment. */
-    public record CriterionScore(String criterionId, int position, String name, int weight,
-                                 Map<String, String> descriptions, Integer level, String comment) {
+    public record CriterionScore(
+            String criterionId,
+            int position,
+            String name,
+            int weight,
+            Map<String, String> descriptions,
+            Integer level,
+            String comment) {
 
         public CriterionScore withLevelAndComment(Integer newLevel, String newComment) {
             return new CriterionScore(criterionId, position, name, weight, descriptions, newLevel, newComment);
@@ -187,7 +207,6 @@ public class Evaluation {
     }
 
     /** The draft audit trail ("Jane changed Problem formulation 2 → 3"). */
-    public record HistoryEntry(Instant at, HistoryKind kind, String criterionId, String criterionName,
-                               Integer from, Integer to) {
-    }
+    public record HistoryEntry(
+            Instant at, HistoryKind kind, String criterionId, String criterionName, Integer from, Integer to) {}
 }

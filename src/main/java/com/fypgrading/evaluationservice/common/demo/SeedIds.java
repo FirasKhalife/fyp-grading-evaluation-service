@@ -9,8 +9,7 @@ import java.util.UUID;
  */
 public final class SeedIds {
 
-    private SeedIds() {
-    }
+    private SeedIds() {}
 
     public static UUID of(UUID session, String key) {
         return UUID.nameUUIDFromBytes((session + "/" + key).getBytes(StandardCharsets.UTF_8));

@@ -18,8 +18,7 @@ public final class DemoSession {
             Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$");
     private static final ThreadLocal<UUID> CURRENT = new ThreadLocal<>();
 
-    private DemoSession() {
-    }
+    private DemoSession() {}
 
     public static Optional<UUID> current() {
         return Optional.ofNullable(CURRENT.get());

@@ -13,8 +13,7 @@ final class Remote {
 
     private static final Logger log = LoggerFactory.getLogger(Remote.class);
 
-    private Remote() {
-    }
+    private Remote() {}
 
     static <T> T call(String service, Supplier<T> call) {
         try {

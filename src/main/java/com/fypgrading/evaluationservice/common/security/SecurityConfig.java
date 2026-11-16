@@ -33,20 +33,23 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/actuator/health/**", "/actuator/info", "/actuator/prometheus").permitAll();
+                    auth.requestMatchers("/actuator/health/**", "/actuator/info", "/actuator/prometheus")
+                            .permitAll();
                     auth.requestMatchers("/v3/api-docs/**").permitAll();
                     if (publicPaths.length > 0) {
                         auth.requestMatchers(publicPaths).permitAll();
                     }
                     auth.anyRequest().authenticated();
                 })
-                .oauth2ResourceServer(rs -> rs
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakRoles()))
-                        .authenticationEntryPoint((req, res, e) -> ProblemWriter.write(res, HttpStatus.UNAUTHORIZED,
-                                "unauthenticated", "Sign in again: the token is missing or expired.",
+                .oauth2ResourceServer(rs -> rs.jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakRoles()))
+                        .authenticationEntryPoint((req, res, e) -> ProblemWriter.write(
+                                res,
+                                HttpStatus.UNAUTHORIZED,
+                                "unauthenticated",
+                                "Sign in again: the token is missing or expired.",
                                 req.getRequestURI())))
-                .exceptionHandling(ex -> ex.accessDeniedHandler((req, res, e) -> ProblemWriter.write(res,
-                        HttpStatus.FORBIDDEN, "forbidden", "Your role can't do this.", req.getRequestURI())));
+                .exceptionHandling(ex -> ex.accessDeniedHandler((req, res, e) -> ProblemWriter.write(
+                        res, HttpStatus.FORBIDDEN, "forbidden", "Your role can't do this.", req.getRequestURI())));
         return http.build();
     }
 
