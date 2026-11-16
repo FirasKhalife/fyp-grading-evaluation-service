@@ -22,7 +22,8 @@ class PayloadContractsTest {
     @Test
     void producesTheGradeHandOff() {
         Contracts.assertProducesExactly(
-                "grade-submission", new AdminClient.GradeSubmission(ID, ID, Assessment.FINAL_REPORT, ID, 72.5, AT));
+                "grade-submission",
+                new AdminClient.GradeSubmission(ID, ID, Assessment.FINAL_REPORT, ID, 72.5, AT, false));
     }
 
     @Test

@@ -66,7 +66,8 @@ public class AdminClient {
             Assessment assessment,
             String reviewerId,
             double score,
-            Instant submittedAt) {}
+            Instant submittedAt,
+            boolean submittedLate) {}
 
     public record GradeReceipt(int submittedCount, int expectedCount) {}
 }

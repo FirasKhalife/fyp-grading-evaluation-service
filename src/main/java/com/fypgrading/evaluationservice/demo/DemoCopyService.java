@@ -47,9 +47,26 @@ public class DemoCopyService {
         }
     }
 
-    public void replace(UUID session) {
-        SeedClock at = SeedClock.startingNow(clock);
-        evaluations.deleteByDemoSession(session.toString());
+    /**
+     * Deletes the session's copy and inserts a fresh one. MongoDB here has no multi-document transactions, so if an
+     * autosave lands in between (its draft collides with a seeded one), it deletes and inserts again (review M4).
+     */
+    public void replace(UUID session, java.time.Instant createdAt) {
+        SeedClock at = SeedClock.startingAt(createdAt);
+        for (int attempt = 1; ; attempt++) {
+            evaluations.deleteByDemoSession(session.toString());
+            try {
+                insertCopy(session, at);
+                return;
+            } catch (org.springframework.dao.DuplicateKeyException raced) {
+                if (attempt >= 3) {
+                    throw raced;
+                }
+            }
+        }
+    }
+
+    private void insertCopy(UUID session, SeedClock at) {
         List<Evaluation> copy =
                 seed.evaluations().stream().map(e -> toDocument(session, at, e)).toList();
         evaluations.insert(copy);

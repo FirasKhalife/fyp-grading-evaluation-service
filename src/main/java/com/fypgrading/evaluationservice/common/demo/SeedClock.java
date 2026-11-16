@@ -24,6 +24,11 @@ public record SeedClock(LocalDate anchor, Instant now) {
     private static final Pattern DAY = Pattern.compile("^D([+-][0-9]+) ([0-9]{2}:[0-9]{2})$");
     private static final Pattern NOW = Pattern.compile("^N-([0-9]+)([mh])$");
 
+    /** For a copy created at {@code createdAt} (admin-service passes it, so every service agrees on "today"). */
+    public static SeedClock startingAt(Instant createdAt) {
+        return new SeedClock(LocalDate.ofInstant(createdAt, ZONE), createdAt);
+    }
+
     public static SeedClock startingNow(Clock clock) {
         Instant now = clock.instant();
         return new SeedClock(LocalDate.ofInstant(now, ZONE), now);

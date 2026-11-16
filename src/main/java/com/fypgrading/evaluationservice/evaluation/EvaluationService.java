@@ -79,10 +79,7 @@ public class EvaluationService {
             if (created) {
                 evaluation = start(assignment, me);
             }
-            if (evaluation.isSubmitted()) {
-                throw ApiException.conflict(
-                        "evaluation-submitted", "This evaluation was submitted and is locked. It can't be changed.");
-            }
+            requireDraft(evaluation);
             List<LevelChange> changes = apply(evaluation, body);
             Evaluation result = evaluations.save(evaluation);
             announce(result, assignment, me, created, changes);
@@ -92,19 +89,36 @@ public class EvaluationService {
     }
 
     /**
-     * Submits and locks. The grade is handed to admin-service first (idempotent on the evaluation id), so a
-     * failure leaves an editable draft and a retry is always safe.
+     * Submits and locks (review H2). The draft is first frozen (SUBMITTING, with its score and the submit time), so
+     * an autosave racing the submit is refused instead of changing the levels behind the grade. Only then is the
+     * grade handed to admin-service, which is idempotent on the evaluation id and refuses a different score. If the
+     * hand-off fails, the draft is unfrozen; if the service stops in between, the next submit resumes it.
      */
     public EvaluationView submit(String teamId, Assessment assessment, DraftBody body) {
         CurrentUser me = CurrentUser.require();
         Assignment assignment = requireAssigned(teamId, assessment, me);
-        Evaluation evaluation = findMine(teamId, assessment, me).orElse(null);
-        if (evaluation != null && evaluation.isSubmitted()) {
-            return view(evaluation, assignment.dueAt());
+        for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+            Evaluation evaluation = findMine(teamId, assessment, me).orElse(null);
+            if (evaluation != null && evaluation.isSubmitted()) {
+                return view(evaluation, assignment.dueAt());
+            }
+            if (evaluation == null) {
+                evaluation = start(assignment, me);
+            }
+            try {
+                if (evaluation.isDraft()) {
+                    evaluation = freeze(evaluation, body, assignment);
+                }
+                return view(handOff(evaluation, assignment, me), assignment.dueAt());
+            } catch (OptimisticLockingFailureException | DuplicateKeyException raced) {
+                // An autosave or a second submit got there first: read it again and decide from its state.
+            }
         }
-        if (evaluation == null) {
-            evaluation = start(assignment, me);
-        }
+        throw ApiException.conflict(
+                "evaluation-changed", "The evaluation changed while it was being submitted. Submit again.");
+    }
+
+    private Evaluation freeze(Evaluation evaluation, DraftBody body, Assignment assignment) {
         if (body != null) {
             apply(evaluation, body);
         }
@@ -114,32 +128,64 @@ public class EvaluationService {
                         "criteria[" + c.criterionId() + "].level", "\"" + c.name() + "\" has no level yet"))
                 .toList();
         if (!unscored.isEmpty()) {
-            evaluations.save(evaluation);
+            evaluations.save(evaluation); // keep the last edits
             throw new ApiException(
                     HttpStatus.UNPROCESSABLE_CONTENT,
                     "criteria-unscored",
                     "Score every criterion before submitting: " + unscored.size() + " left.",
                     unscored);
         }
-        // Keep the visitor's last edits even if the hand-off below fails.
-        evaluation = evaluations.save(evaluation);
         Instant now = clock.instant();
-        GradeReceipt receipt = admin.submitGrade(new GradeSubmission(
-                evaluation.getId(), teamId, assessment, me.id().toString(), evaluation.score(), now));
-        evaluation.submit(now);
-        evaluation.record(new HistoryEntry(now, HistoryKind.SUBMITTED, null, null, null, null));
+        boolean late = assignment.dueAt() != null && now.isAfter(assignment.dueAt());
+        evaluation.beginSubmit(now, late);
+        return evaluations.save(evaluation);
+    }
+
+    private Evaluation handOff(Evaluation evaluation, Assignment assignment, CurrentUser me) {
+        GradeReceipt receipt;
+        try {
+            receipt = admin.submitGrade(new GradeSubmission(
+                    evaluation.getId(),
+                    evaluation.getTeamId(),
+                    evaluation.getAssessment(),
+                    me.id().toString(),
+                    evaluation.score(),
+                    evaluation.getSubmittedAt(),
+                    evaluation.isSubmittedLate()));
+        } catch (ApiException e) {
+            evaluation.abortSubmit();
+            try {
+                evaluations.save(evaluation);
+            } catch (OptimisticLockingFailureException ignored) {
+                // A concurrent submit is handling it.
+            }
+            throw e;
+        }
+        evaluation.completeSubmit();
+        evaluation.record(new HistoryEntry(evaluation.getSubmittedAt(), HistoryKind.SUBMITTED, null, null, null, null));
         Evaluation saved = evaluations.save(evaluation);
         activity.publish(
                 DemoSession.require(),
                 "SUBMITTED",
                 me.id().toString(),
                 displayName(saved),
-                "submitted the " + assessment.displayName() + " for Team " + saved.getTeamName() + " ("
+                "submitted the " + saved.getAssessment().displayName() + " for Team " + saved.getTeamName() + " ("
                         + receipt.submittedCount() + " of " + receipt.expectedCount() + ").",
-                now,
-                teamId,
-                assessment);
-        return view(saved, assignment.dueAt());
+                saved.getSubmittedAt(),
+                saved.getTeamId(),
+                saved.getAssessment());
+        return saved;
+    }
+
+    private static void requireDraft(Evaluation evaluation) {
+        if (evaluation.isSubmitted()) {
+            throw ApiException.conflict(
+                    "evaluation-submitted", "This evaluation was submitted and is locked. It can't be changed.");
+        }
+        if (evaluation.isSubmitting()) {
+            throw ApiException.conflict(
+                    "evaluation-submitting", "This evaluation is being submitted, so it can't be changed now.");
+        }
     }
 
     /** Admin sees drafts and submitted; a reviewer on the team sees submitted ones once the grade is final. */
@@ -192,7 +238,7 @@ public class EvaluationService {
                         e.getTeamId(),
                         e.getAssessment(),
                         e.getReviewerId(),
-                        e.getStatus(),
+                        e.getStatus().visible(),
                         e.scoredCount(),
                         e.getCriteria().size(),
                         e.scoredCount() == 0 ? null : e.score(),
@@ -230,6 +276,13 @@ public class EvaluationService {
     }
 
     private Evaluation start(Assignment assignment, CurrentUser me) {
+        if (assignment.teamAssessmentFinal()) {
+            // Review H1: no reopening. A final team grade takes no new evaluation.
+            throw ApiException.conflict(
+                    "assessment-final",
+                    "The " + assignment.assessment().displayName() + " grade for Team " + assignment.teamName()
+                            + " is already final.");
+        }
         RubricClient.Rubric rubric = rubrics.rubric(assignment.assessment());
         if (rubric.criteria() == null || rubric.criteria().isEmpty()) {
             throw ApiException.conflict("rubric-empty", "This assessment has no rubric yet.");
@@ -264,9 +317,9 @@ public class EvaluationService {
                 .toList();
         if (!unknown.isEmpty()) {
             throw new ApiException(
-                    HttpStatus.BAD_REQUEST,
-                    "validation-failed",
-                    "Unknown criteria in the form.",
+                    HttpStatus.CONFLICT,
+                    "rubric-changed",
+                    "The rubric changed since this form was loaded. Reload it.",
                     unknown.stream()
                             .map(id -> new ApiException.FieldProblem(
                                     "criteria[" + id + "]", "is not a criterion of this evaluation"))
@@ -290,7 +343,8 @@ public class EvaluationService {
                 }
             }
             if (!Objects.equals(c.comment(), comment)) {
-                evaluation.record(
+                // Autosave while typing: one line per criterion and burst, not one per keystroke (review M11).
+                evaluation.recordCollapsing(
                         new HistoryEntry(now, HistoryKind.COMMENT_CHANGED, c.criterionId(), c.name(), null, null));
             }
             updated.add(c.withLevelAndComment(in.level(), comment));
@@ -298,7 +352,8 @@ public class EvaluationService {
         evaluation.replaceCriteria(updated);
         String overall = blankToNull(body.overallComment());
         if (!Objects.equals(evaluation.getOverallComment(), overall)) {
-            evaluation.record(new HistoryEntry(now, HistoryKind.OVERALL_COMMENT_CHANGED, null, null, null, null));
+            evaluation.recordCollapsing(
+                    new HistoryEntry(now, HistoryKind.OVERALL_COMMENT_CHANGED, null, null, null, null));
             evaluation.setOverallComment(overall);
         }
         evaluation.touch(now);
@@ -336,16 +391,27 @@ public class EvaluationService {
         }
     }
 
+    private static final int MAX_ATTEMPTS = 3;
+
+    /** Concurrent autosaves (two tabs, a debounce overlap): re-read and re-apply, a few times, then 409 (review M2). */
     private static <T> T retryOnRace(java.util.function.Supplier<T> work) {
-        try {
-            return work.get();
-        } catch (DuplicateKeyException | OptimisticLockingFailureException e) {
-            return work.get();
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return work.get();
+            } catch (DuplicateKeyException | OptimisticLockingFailureException e) {
+                if (attempt >= MAX_ATTEMPTS) {
+                    throw ApiException.conflict(
+                            "evaluation-changed", "The evaluation changed in another tab. Reload it.");
+                }
+            }
         }
     }
 
     private EvaluationView blank(Assignment assignment) {
         RubricClient.Rubric rubric = rubrics.rubric(assignment.assessment());
+        if (rubric.criteria() == null || rubric.criteria().isEmpty()) {
+            throw ApiException.conflict("rubric-empty", "This assessment has no rubric yet.");
+        }
         List<CriterionView> criteria = rubric.criteria().stream()
                 .sorted(Comparator.comparingInt(RubricClient.Criterion::position))
                 .map(c -> new CriterionView(c.id(), c.position(), c.name(), c.weight(), c.descriptions(), null, null))
@@ -386,15 +452,15 @@ public class EvaluationService {
                 e.getAssessment(),
                 reviewer(e),
                 e.getReviewerRole(),
-                e.getStatus(),
+                e.getStatus().visible(),
                 criteria,
                 e.getOverallComment(),
                 score,
                 e.scoredCount(),
                 criteria.size(),
                 dueAt,
-                isOverdue(dueAt, e.getSubmittedAt()),
-                isLate(dueAt, e.getSubmittedAt()),
+                e.isSubmitted() ? false : isOverdue(dueAt, null),
+                e.isSubmitted() && e.isSubmittedLate(),
                 e.getCreatedAt(),
                 e.getUpdatedAt(),
                 e.getSubmittedAt());
@@ -402,11 +468,6 @@ public class EvaluationService {
 
     private boolean isOverdue(Instant dueAt, Instant submittedAt) {
         return dueAt != null && submittedAt == null && clock.instant().isAfter(dueAt);
-    }
-
-    /** Late submissions are allowed and stay marked: submitted after the due date. */
-    private static boolean isLate(Instant dueAt, Instant submittedAt) {
-        return dueAt != null && submittedAt != null && submittedAt.isAfter(dueAt);
     }
 
     private static PersonView reviewer(Evaluation e) {

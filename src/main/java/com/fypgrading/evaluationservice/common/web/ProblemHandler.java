@@ -5,6 +5,8 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -34,6 +36,23 @@ public class ProblemHandler extends ResponseEntityExceptionHandler {
         }
         ex.properties().forEach(problem::setProperty);
         return ResponseEntity.status(ex.status()).body(problem);
+    }
+
+    /** Two writes raced (two tabs, a double click): a 409 the client can retry, never a 500 (review M2). */
+    @ExceptionHandler(ConcurrencyFailureException.class)
+    ResponseEntity<ProblemDetail> concurrent(ConcurrencyFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ProblemWriter.problem(
+                        HttpStatus.CONFLICT,
+                        "concurrent-change",
+                        "Someone else changed this at the same time. Retry."));
+    }
+
+    /** A unique constraint caught what a pre-check missed under a race. */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<ProblemDetail> integrity(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ProblemWriter.problem(HttpStatus.CONFLICT, "conflict", "This conflicts with existing data."));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

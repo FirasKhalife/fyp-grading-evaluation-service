@@ -4,5 +4,6 @@
   "assessment": "FINAL_REPORT",
   "reviewerId": "00000000-0000-4000-a000-000000000002",
   "score": 72.5,
-  "submittedAt": "2026-06-10T08:00:00Z"
+  "submittedAt": "2026-06-10T08:00:00Z",
+  "submittedLate": false
 }

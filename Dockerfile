@@ -17,5 +17,6 @@ COPY --from=build /app/target/extracted/snapshot-dependencies/ ./
 COPY --from=build /app/target/extracted/application/ ./
 USER 10001
 EXPOSE 8080
-ENV JAVA_OPTS=""
+# Review H5: small-heap defaults so all services fit a 4 GB host. Compose may override per service.
+ENV JAVA_OPTS="-XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xmx144m -Xss512k -XX:MaxMetaspaceSize=180m -XX:ReservedCodeCacheSize=48m -XX:MaxDirectMemorySize=32m -XX:+ExitOnOutOfMemoryError"
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher"]

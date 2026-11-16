@@ -40,6 +40,9 @@ public class Evaluation {
     private Instant createdAt;
     private Instant updatedAt;
     private Instant submittedAt;
+    /** Submitted after the due date in force at the time; stored, so moving the due date never clears it. */
+    private boolean submittedLate;
+
     private List<HistoryEntry> history = new ArrayList<>();
 
     protected Evaluation() {}
@@ -95,10 +98,36 @@ public class Evaluation {
         this.updatedAt = at;
     }
 
-    public void submit(Instant at) {
-        this.status = EvaluationStatus.SUBMITTED;
+    public boolean isDraft() {
+        return status == EvaluationStatus.DRAFT;
+    }
+
+    public boolean isSubmitting() {
+        return status == EvaluationStatus.SUBMITTING;
+    }
+
+    /** Freezes the draft (and so its score) before the grade is handed over. */
+    public void beginSubmit(Instant at, boolean late) {
+        this.status = EvaluationStatus.SUBMITTING;
         this.submittedAt = at;
-        this.updatedAt = at;
+        this.submittedLate = late;
+    }
+
+    /** The hand-off failed: the reviewer can edit again. */
+    public void abortSubmit() {
+        this.status = EvaluationStatus.DRAFT;
+        this.submittedAt = null;
+        this.submittedLate = false;
+    }
+
+    /** The hand-off succeeded: locked for good, at the instant it was frozen. */
+    public void completeSubmit() {
+        this.status = EvaluationStatus.SUBMITTED;
+        this.updatedAt = submittedAt;
+    }
+
+    public boolean isSubmittedLate() {
+        return submittedLate;
     }
 
     /** Only for seeding a visitor's copy. */
@@ -108,6 +137,7 @@ public class Evaluation {
             Instant updatedAt,
             Instant submittedAt,
             List<HistoryEntry> history) {
+        this.submittedLate = false;
         this.status = status;
         this.overallComment = overallComment;
         this.updatedAt = updatedAt;
@@ -116,6 +146,18 @@ public class Evaluation {
     }
 
     public void record(HistoryEntry entry) {
+        history.add(entry);
+    }
+
+    /** Like {@link #record}, but replaces the last entry when it's the same kind of change to the same criterion. */
+    public void recordCollapsing(HistoryEntry entry) {
+        if (!history.isEmpty()) {
+            HistoryEntry last = history.getLast();
+            if (last.kind() == entry.kind() && java.util.Objects.equals(last.criterionId(), entry.criterionId())) {
+                history.set(history.size() - 1, entry);
+                return;
+            }
+        }
         history.add(entry);
     }
 

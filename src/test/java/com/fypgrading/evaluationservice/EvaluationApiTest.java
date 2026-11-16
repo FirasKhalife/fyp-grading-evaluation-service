@@ -163,6 +163,7 @@ class EvaluationApiTest {
         verify(admin).submitGrade(grade.capture());
         assertThat(grade.getValue().score()).isEqualTo(70.0);
         assertThat(grade.getValue().reviewerId()).isEqualTo(JANE.toString());
+        assertThat(grade.getValue().submittedLate()).isFalse(); // due tomorrow
 
         // Retrying the submit is safe and doesn't hand the grade over twice.
         mvc.perform(post(PATH + "/submit").header("X-Demo-Session", session).with(jane()))
@@ -213,6 +214,57 @@ class EvaluationApiTest {
                         .header("X-Demo-Session", session)
                         .with(jane()))
                 .andExpect(status().isForbidden());
+        // Review M16: another copy can't read this copy's history.
+        mvc.perform(get("/api/evaluations/" + id + "/history")
+                        .header("X-Demo-Session", UUID.randomUUID())
+                        .with(coordinator()))
+                .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Review H2: an autosave that arrives while the grade is being handed over is refused, so the stored levels
+     * always match the score admin-service received.
+     */
+    @Test
+    void anAutosaveDuringTheHandOffIsRefusedAndTheSubmittedScoreMatchesTheLevels() throws Exception {
+        String[] autosave = new String[2];
+        when(admin.submitGrade(any())).thenAnswer(call -> {
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                        try {
+                            var response = mvc.perform(put(PATH)
+                                            .header("X-Demo-Session", session)
+                                            .with(jane())
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .content(form(1, 1, 1)))
+                                    .andReturn()
+                                    .getResponse();
+                            autosave[0] = String.valueOf(response.getStatus());
+                            autosave[1] = response.getContentAsString();
+                        } catch (Exception e) {
+                            throw new IllegalStateException(e);
+                        }
+                    })
+                    .get(10, java.util.concurrent.TimeUnit.SECONDS);
+            return new GradeReceipt(1, 3);
+        });
+
+        mvc.perform(post(PATH + "/submit")
+                        .header("X-Demo-Session", session)
+                        .with(jane())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(form(4, 4, 4)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUBMITTED"))
+                .andExpect(jsonPath("$.score").value(100.0));
+
+        assertThat(autosave[0]).isEqualTo("409");
+        assertThat(autosave[1]).contains("evaluation-submitting");
+        ArgumentCaptor<GradeSubmission> grade = ArgumentCaptor.forClass(GradeSubmission.class);
+        verify(admin).submitGrade(grade.capture());
+        assertThat(grade.getValue().score()).isEqualTo(100.0);
+        mvc.perform(get(PATH).header("X-Demo-Session", session).with(jane()))
+                .andExpect(jsonPath("$.status").value("SUBMITTED"))
+                .andExpect(jsonPath("$.score").value(100.0));
     }
 
     @Test
@@ -249,12 +301,33 @@ class EvaluationApiTest {
                 .andExpect(jsonPath("$.status").value("DRAFT"));
     }
 
+    /** Review M8: a visitor's token and session can't replace or drop another visitor's copy. */
+    @Test
+    void aCopyCanOnlyBeChangedByItsOwnSession() throws Exception {
+        UUID other = UUID.randomUUID();
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                                "/internal/demo-sessions/" + other)
+                        .header("X-Demo-Session", session)
+                        .with(jane()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("not-your-session"));
+        mvc.perform(put("/internal/demo-sessions/" + other)
+                        .header("X-Demo-Session", session)
+                        .with(jane()))
+                .andExpect(status().isForbidden());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                                "/internal/demo-sessions/" + session)
+                        .header("X-Demo-Session", session)
+                        .with(jane()))
+                .andExpect(status().isNoContent());
+    }
+
     @Test
     void theSeedCopyIsPrivateToEachVisitor() {
         UUID other = UUID.randomUUID();
-        copies.replace(session);
-        copies.replace(other);
-        copies.replace(session);
+        copies.replace(session, java.time.Instant.now());
+        copies.replace(other, java.time.Instant.now());
+        copies.replace(session, java.time.Instant.now());
         long mine = evaluations.findByDemoSession(session.toString()).size();
         assertThat(mine).isGreaterThan(50);
         assertThat(evaluations.findByDemoSession(other.toString())).hasSize((int) mine);
