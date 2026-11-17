@@ -1,0 +1,10 @@
+{
+  "eventId": "2f0a9c1e-3d4b-4c5e-8f6a-7b8c9d0e1f2a",
+  "demoSession": "5f8ea018-a5d9-4241-8ed0-3146ff6c2534",
+  "kind": "SUBMITTED",
+  "actorId": "00000000-0000-4000-a000-000000000002",
+  "actorName": "Jane Smith",
+  "text": "submitted the Final report for Team Beta (3 of 3).",
+  "at": "2026-06-10T08:20:00Z",
+  "link": {"kind": "TEAM", "teamId": "6c3fc94c-3b70-3a35-9a0c-9dcc8f62264a", "assessment": "FINAL_REPORT"}
+}

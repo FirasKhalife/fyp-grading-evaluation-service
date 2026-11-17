@@ -1,0 +1,12 @@
+{
+  "teamId": "6c3fc94c-3b70-3a35-9a0c-9dcc8f62264a",
+  "teamName": "Beta",
+  "assessment": "FINAL_REPORT",
+  "requiredRole": "JURY",
+  "assigned": true,
+  "reviewer": {"id": "00000000-0000-4000-a000-000000000002", "firstName": "Jane", "lastName": "Smith"},
+  "dueAt": "2026-06-12T21:59:00Z",
+  "teamAssessmentFinal": false,
+  "submittedCount": 2,
+  "expectedCount": 3
+}
