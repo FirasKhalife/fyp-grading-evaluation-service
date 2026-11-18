@@ -1,0 +1,19 @@
+version: 2
+# Weekly updates for the pinned versions: Maven dependencies, the Dockerfile's base images (pinned by digest) and the
+# GitHub Actions (pinned by commit SHA). Minor and patch updates come grouped in one pull request per ecosystem.
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule: {interval: weekly, day: monday}
+    groups:
+      maven: {patterns: ["*"], update-types: [minor, patch]}
+  - package-ecosystem: docker
+    directory: /
+    schedule: {interval: weekly, day: monday}
+    groups:
+      docker: {patterns: ["*"]}
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: {interval: weekly, day: monday}
+    groups:
+      actions: {patterns: ["*"]}

@@ -1,4 +1,4 @@
-target
-.git
-.idea
-*.iml
+# Allowlist: the image build needs only the POM and the main sources (tests are never built into it).
+*
+!pom.xml
+!src/main/

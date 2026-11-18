@@ -1,0 +1,6 @@
+# Accepted Trivy findings for this repo's image (CI: .github/workflows/ci.yml, job "image").
+# CI fails on any HIGH or CRITICAL finding that has a fix. Only list here a finding that can't be fixed from this
+# repo yet, each with the reason and an expiry date ("exp:"), after which Trivy reports it again for review.
+# Format: <CVE id> exp:<yyyy-mm-dd>   (one per line, with a comment line above it saying why)
+
+# None today (last scan 2026-11-18: 0 HIGH or CRITICAL).

@@ -19,9 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '25'
@@ -36,26 +36,95 @@ jobs:
 
       - name: Keep the test reports
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: surefire-reports
           path: target/surefire-reports/
           retention-days: 7
 
+  # The image: built on every run and scanned with Trivy. The full report goes to GitHub code scanning; the job fails
+  # on any HIGH or CRITICAL finding that has a fix (accepted unfixable ones are listed in .trivyignore). Only the
+  # default branch pushes it, to ghcr.io/firaskhalife/<repo> with the tags latest and the short commit SHA, with an SBOM
+  # and build provenance attached, and signs it with cosign (keyless, GitHub OIDC). amd64 only: the demo host is
+  # amd64, and an arm64 build would run under emulation.
   image:
     name: Docker image
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write         # push to GHCR
+      security-events: write  # upload the scan to code scanning
+      id-token: write         # cosign keyless signing
+    env:
+      IMAGE: ghcr.io/firaskhalife/${{ github.event.repository.name }}
+      PUSH: ${{ github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+      TRIVY: aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      # Builds the layered, non-root image from the repo's Dockerfile; nothing is pushed.
-      - uses: docker/build-push-action@v7
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=latest,enable=${{ env.PUSH }}
+            type=sha,prefix=,format=short
+
+      - name: Build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          push: false
+          platforms: linux/amd64
+          load: true
+          tags: ${{ env.IMAGE }}:scan
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Scan (every finding, for code scanning)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache -v "$PWD:/src" -w /src \
+            "$TRIVY" image --scanners vuln --ignorefile .trivyignore --format sarif --output trivy.sarif "$IMAGE:scan"
+
+      - uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: always() && hashFiles('trivy.sarif') != ''
+        with:
+          sarif_file: trivy.sarif
+          category: image
+
+      - name: No fixable HIGH or CRITICAL vulnerabilities
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache -v "$PWD:/src" -w /src \
+            "$TRIVY" image --scanners vuln --ignorefile .trivyignore --ignore-unfixed --severity HIGH,CRITICAL \
+            --exit-code 1 "$IMAGE:scan"
+
+      - if: env.PUSH == 'true'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # The same build from the cache, pushed with an SBOM and max-mode provenance.
+      - id: push
+        if: env.PUSH == 'true'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          sbom: true
+          provenance: mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+
+      - if: env.PUSH == 'true'
+        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+
+      - name: Sign (cosign keyless)
+        if: env.PUSH == 'true'
+        run: cosign sign --yes "$IMAGE@${{ steps.push.outputs.digest }}"
