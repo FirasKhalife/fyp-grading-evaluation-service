@@ -15,6 +15,11 @@
 
     <properties>
         <java.version>25</java.version>
+        <!-- Security pins over Spring Boot 4.0.9's managed versions: fixes for HIGH CVEs found by Trivy (2026-11-18).
+             Remove each one once Spring Boot manages that version or newer. -->
+        <httpclient5.version>5.6.5</httpclient5.version>
+        <httpcore5.version>5.4.4</httpcore5.version>
+        <rabbit-amqp-client.version>5.38.0</rabbit-amqp-client.version>
         <spring-cloud.version>2025.1.4</spring-cloud.version>
         <springdoc.version>3.0.3</springdoc.version>
         <argLine/>
