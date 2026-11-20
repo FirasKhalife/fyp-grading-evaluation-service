@@ -76,7 +76,7 @@ It needs MongoDB, RabbitMQ and Keycloak, plus admin-service and rubric-service t
 - Errors are RFC 9457 problem details with a stable `code`.
 - Roles are checked with method security. Identity always comes from the token.
 - Actuator exposes only health, info and prometheus, and the gateway doesn't route it.
-- The shared API contract lives in the workspace (`contract/openapi.yaml`). This service publishes its own part
+- The shared API contract lives in the compose repo ([`contract/openapi.yaml`](https://github.com/FirasKhalife/fyp-grading-docker-compose/blob/master/contract/openapi.yaml)). This service publishes its own part
   at `/v3/api-docs`.
 
 ## Lint and CI
