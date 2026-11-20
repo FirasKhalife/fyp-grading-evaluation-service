@@ -33,6 +33,9 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${AUTH_SERVER_URL:http://localhost:7080/realms/assay}/protocol/openid-connect/certs
+          # Fetch the keys over the internal network, but only accept tokens whose issuer is the public URL Keycloak
+          # puts in them (KC_HOSTNAME). Setting both means no discovery call: Boot only adds the issuer check.
+          issuer-uri: ${AUTH_ISSUER_URI:http://localhost:7080/realms/assay}
 
 assay:
   clients:

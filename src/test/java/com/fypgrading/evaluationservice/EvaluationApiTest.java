@@ -18,6 +18,7 @@ import com.fypgrading.evaluationservice.clients.AdminClient.Assignment;
 import com.fypgrading.evaluationservice.clients.AdminClient.GradeReceipt;
 import com.fypgrading.evaluationservice.clients.AdminClient.GradeSubmission;
 import com.fypgrading.evaluationservice.clients.RubricClient;
+import com.fypgrading.evaluationservice.common.security.TestTokens;
 import com.fypgrading.evaluationservice.common.web.ApiException;
 import com.fypgrading.evaluationservice.demo.DemoCopyService;
 import com.fypgrading.evaluationservice.evaluation.Assessment;
@@ -43,8 +44,11 @@ import org.springframework.messaging.Message;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mongodb.MongoDBContainer;
@@ -334,5 +338,39 @@ class EvaluationApiTest {
         copies.delete(other);
         assertThat(evaluations.findByDemoSession(other.toString())).isEmpty();
         assertThat(evaluations.findByDemoSession(session.toString())).hasSize((int) mine);
+    }
+
+    @DynamicPropertySource
+    static void realTokenKeys(DynamicPropertyRegistry registry) {
+        registry.add("spring.security.oauth2.resourceserver.jwt.jwk-set-uri", TestTokens::jwkSetUri);
+    }
+
+    /** A signed token through the real decoder (not the jwt() shortcut), as the gateway forwards it. */
+    private ResultActions withToken(String token) throws Exception {
+        return mvc.perform(
+                get("/api/evaluations").header("X-Demo-Session", session).header("Authorization", "Bearer " + token));
+    }
+
+    @Test
+    void aSignedTokenFromOurIssuerToOurClientIsAccepted() throws Exception {
+        int status = withToken(TestTokens.token(TestTokens.ISSUER, TestTokens.CLIENT, "ADMIN"))
+                .andReturn()
+                .getResponse()
+                .getStatus();
+        assertThat(status).isNotIn(401, 403);
+    }
+
+    @Test
+    void aTokenFromAnotherIssuerIsRejected() throws Exception {
+        withToken(TestTokens.token("http://elsewhere.test/realms/assay", TestTokens.CLIENT, "ADMIN"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("unauthenticated"));
+    }
+
+    @Test
+    void aTokenIssuedToAnotherClientIsRejected() throws Exception {
+        withToken(TestTokens.token(TestTokens.ISSUER, "admin-cli", "ADMIN"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("unauthenticated"));
     }
 }
