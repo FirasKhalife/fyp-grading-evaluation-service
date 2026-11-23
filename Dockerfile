@@ -3,7 +3,7 @@
 # identical). Base images are pinned by digest; Dependabot proposes updates.
 
 # 1. Build the jar and extract it into layers, in the layout `java -jar` (and so the AOT cache) can use.
-FROM maven:3.9.16-eclipse-temurin-25-alpine@sha256:781f1da87cd3d142e66e47cc149c4582a652fb7f574648206d1e956170c0dc90 AS build
+FROM maven:3.9-eclipse-temurin-26-alpine@sha256:4c85d516dd8c7e50d49a403d604e565e0dbb09a790186fe3245725d313ae7cb9 AS build
 WORKDIR /app
 COPY pom.xml .
 RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp -q dependency:go-offline || true
@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp -q package -Dmaven.test.skip
 
 # 2. A Java runtime with only the modules this service uses (jdeps), plus the ones it reaches by reflection or
 #    service loading (DNS for MongoDB, JMX for Actuator, crypto providers, the zip file system).
-FROM eclipse-temurin:25.0.5_8-jdk-alpine-3.24@sha256:c7c3d0bdf7f2bbc5a05a6712ed334d198360105634ea9adf76fca94f381b1e3f AS jre
+FROM eclipse-temurin:27-jdk-alpine-3.24@sha256:3ce6707ba035480069ff65d12265a8806d74fe9fd761987d183dd86362def451 AS jre
 COPY --from=build /app/target/extracted /x
 RUN jdeps --ignore-missing-deps -q --multi-release 25 --print-module-deps \
       --class-path '/x/dependencies/lib/*' /x/application/app.jar > /modules \
